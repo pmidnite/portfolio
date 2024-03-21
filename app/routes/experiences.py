@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from bson import json_util
 from datetime import datetime
 from app.models.experiences import Experiences
@@ -15,11 +16,11 @@ def fetch_experiences():
         experiences = Experiences.fetch_experience()
     if experiences:
         return json_util.dumps(experiences)
-    return jsonify({"Message": "No experience exist for Email: {0} and Start Year: {1}"
-                    .format(payload.get("Email"), payload.get("Start Year"))})
+    return jsonify({"Message": "No experience exist currently."})
 
 
 @bp.route('', methods=["POST", "PATCH"])
+@jwt_required()
 def insert_or_update_experience():
     experience_payload = request.json
     emails = [x["Email"] for x in experience_payload]
@@ -29,8 +30,9 @@ def insert_or_update_experience():
         return jsonify({"message": "Experience inserted/updated Successfully."})
     return jsonify({"message": "Can't add experience since, Email: {0} doesn't exists.".
                     format(experience_payload.get("Email"))})
-    
+
 @bp.route('', methods=["Delete"])
+@jwt_required()
 def delete_experience():
     del_payload = request.json
     is_exp_exists = Experiences.fetch_exact_experience(del_payload["Email"],

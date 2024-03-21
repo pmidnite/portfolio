@@ -1,13 +1,15 @@
 # Routes for contact
 
-from datetime import datetime
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from bson import json_util
+from datetime import datetime
 from app.models.contact import Contact
 
 bp = Blueprint("contact", __name__, url_prefix="/api/contact")
 
 @bp.route("", methods=["GET"])
+@jwt_required()
 def fetch_contact():
     contacts = Contact.fetch_contact()
     return json_util.dumps(contacts)
@@ -17,7 +19,7 @@ def insert_or_update_contact():
     try:
         contact_payload = request.json
         is_already_contacted = Contact.fetch_exact_contact(contact_payload.get("Email"))
-        if not is_already_contacted or len(is_already_contacted) <= 3:
+        if not is_already_contacted or len(is_already_contacted) < 3:
             contact_payload.update({"Contact Date": datetime.now()})
             Contact.insert_contact(contact_payload)
             return jsonify({"Message": "Thank you for your message."})
@@ -27,6 +29,7 @@ def insert_or_update_contact():
         return jsonify({"Message": "Missing some data while filling contact form."})
 
 @bp.route("", methods=["DELETE"])
+@jwt_required()
 def delete_contact():
     try:
         del_payload = request.json

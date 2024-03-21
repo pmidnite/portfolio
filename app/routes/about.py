@@ -1,5 +1,6 @@
 # routes/about.py
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from datetime import datetime
 from bson import json_util
 from app.models.about import About
@@ -12,6 +13,7 @@ def fetch_about():
     return json_util.dumps(about)
 
 @bp.route('', methods=['POST', 'PATCH'])
+@jwt_required()
 def insert_or_update_about():
     about_payload = request.json
     is_exists = About.fetch_exact_about(about_payload.get('Email'))
@@ -24,6 +26,7 @@ def insert_or_update_about():
     return jsonify({'message': 'About inserted/updated successfully'})
 
 @bp.route('', methods=['DELETE'])
+@jwt_required()
 def delete_about():
     del_payload = request.json
     is_exists = About.fetch_exact_about(del_payload.get('Email'))

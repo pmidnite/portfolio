@@ -1,5 +1,6 @@
 # Routes for educations.py
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required
 from datetime import datetime
 from bson import json_util
 from app.models.educations import Education
@@ -13,6 +14,7 @@ def fetch_education():
     return json_util.dumps(education)
 
 @bp.route("", methods=["POST", "PATCH"])
+@jwt_required()
 def insert_or_update_education():
     education_payload = request.json
     is_email_exists = About.fetch_exact_about(education_payload.get("Email"))
@@ -31,6 +33,7 @@ def insert_or_update_education():
         return jsonify({"message": msg.format(education_payload.get("Email"))})
 
 @bp.route("", methods=["DELETE"])
+@jwt_required()
 def delete_education():
     del_payload = request.json
     is_exists = Education.fetch_exact_education(del_payload.get("Email"))
