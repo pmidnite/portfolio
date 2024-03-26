@@ -25,7 +25,7 @@ function fetchAndRenderAbout() {
       for (i in cls_data_mapper) {
         const elements = document.querySelectorAll('.' + i);
         elements.forEach(el => {
-          el.innerHTML = data[0][cls_data_mapper[i]];
+          el.innerHTML = data[cls_data_mapper[i]];
         });
       }
       // document.getElementsByClassName(i).innerHTML = data[0][id_data_mapper[i]];
@@ -36,14 +36,14 @@ function fetchAndRenderAbout() {
 }
 
 function fetchAndRenderSkill() {
-  fetch('/api/skill')
+  fetch('/api/skill/mapping/exact')
     .then(response => response.json())
     .then(skill => {
       const dataContainer = document.getElementById('skills-content-id');
       skill.forEach(item => {
         const div = document.createElement('div');
         div.innerHTML = `
-            <img src="${item['Skill Logo']}" alt="${item['Skill Name']}">
+            <img src="/static/${item['Skill Logo']}" alt="${item['Skill Name']}">
           `;
         div.setAttribute('class', 'skill-name-logo col-lg-2');
         div.setAttribute('title', `${item['Skill Name']}`);
@@ -140,7 +140,12 @@ function fetchAndRenderTestimony() {
         ${item['Message']}
         <i class="bx bxs-quote-alt-right quote-icon-right"></i>`;
       h3.innerHTML = item['Name'];
-      h4.innerHTML = item['Designation'];
+      if(item['Company']){
+        h4.innerHTML = item['Designation'] + ' , ' + item['Company'];
+      }
+      else{
+        h4.innerHTML = item['Designation'];
+      }
       innerDiv.setAttribute('class', 'testimonial-item');
       innerDiv.setAttribute('data-aos', 'fade-up');
       innerDiv.append(p, h3, h4);

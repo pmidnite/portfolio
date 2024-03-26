@@ -1,43 +1,21 @@
-from app import mongo
+from app.utilities.database import db
+from sqlalchemy.sql import func
+from app.models.about import About
 
-class Experiences:
+
+class Experiences(db.Model):
     '''
-    Sample Payload
-    -----------------
-    {
-        "Email": "nsarfaraz@email.com",
-        "Company Name": "Zeomega Infotech Pvt Ltd",
-        "Address": "Bengaluru, India",
-        "Start Year": "2017",
-        "End Year": "2018",
-        "Designation": "Software Developer Trainee",
-        "Description": "ETL WSO2 REST and SOAP API development and support using SOA architecture for client using tools like WSO2 ESB, RabbitMQ, IS Server and API Manager."
-    }
+    Experience DB Structure Model
     '''
+    __tablename__ = "experience"
 
-    @staticmethod
-    def fetch_experience():
-        return list(mongo.db.experiences.find().sort("Start Year", -1))
-
-    @staticmethod
-    def fetch_exact_experience(email, year, sort_by_col="Start Year"):
-        if year:
-            return list(mongo.db.experiences.find({"Email": email, "Start Year": year}))
-        else:
-            return list(mongo.db.experiences.find({"Email": email}).sort(sort_by_col, -1))
-
-    @staticmethod
-    def insert_or_update_experience(payload):
-        if len(payload) > 1:
-            for load in payload:
-                mongo.db.experiences.update_one({"Email": load['Email'], "Start Year": load["Start Year"]},
-                                               {'$set': load},
-                                               upsert=True)
-        else:
-            mongo.db.experiences.update_one({"Email": payload['Email'], "Start Year": payload["Start Year"]},
-                                            {'$set': payload},
-                                            upsert=True)
-
-    @staticmethod
-    def delete_experience(payload):
-        mongo.db.experiences.delete_one({"Email": payload["Email"], "Start Year": payload["Start Year"]})
+    id = db.Column(db.Integer, primary_key=True)
+    start_year = db.Column(db.String(4), nullable=False)
+    address = db.Column(db.String(100), nullable=False)
+    company_name = db.Column(db.String(150), nullable=False)
+    description = db.Column(db.String(1000), nullable=False)
+    designation = db.Column(db.String(200), nullable=False)
+    end_year = db.Column(db.String(7), nullable=False)
+    email = db.Column(db.ForeignKey(About.email), nullable=False)
+    
+    # __table_args__ = (db.UniqueConstraint(email, start_year, name="email_start_yr_uk"),)
