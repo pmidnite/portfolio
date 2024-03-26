@@ -3,24 +3,26 @@ from flask import Flask, render_template
 from flask_pymongo import PyMongo
 from flask_jwt_extended import JWTManager
 from .config import Config
+from app.models import about, contact, educations,\
+                       experiences, skills, testimonials
+from app.routes import about, educations, skills,\
+                       experiences, testimonials, contact, generate_token
+from app.utilities.database import create_database
 
 
 jwt = JWTManager()
-mongo = PyMongo()
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
     jwt.init_app(app)
-    mongo.init_app(app)
+    create_database(app)
 
     @app.route("/")
     @app.route("/index")
     def index():
         return render_template('index.html')
-
-    from app.routes import about, educations, skills, experiences, testimonials, contact, generate_token
 
     app.register_blueprint(about.bp)
     app.register_blueprint(educations.bp)

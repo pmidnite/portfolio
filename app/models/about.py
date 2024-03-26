@@ -1,37 +1,25 @@
-# model about.py
-from app import mongo
+from app.utilities.database import db
+from sqlalchemy.sql import func
 
-class About:
+
+class About(db.Model):
     '''
-    Sample Payload
-    --------------
-    {
-        "Current Designation": "Lead Software Developer",
-        "Short Description": "I am working as a Lead Full Stack Developer in a leading healthcare product company ZeOmega, orchestrating end-to-end development of product modules. I oversee the development of comprehensive solutions while maintaining a keen interest in cybersecurity.  Passionate about cybersecurity, I actively seeking opportunities to enhance my knowledge and skill in this domain for defenses against potential threats, safeguarding sensitive information and computer forensics.",
-        "Description": "As a Lead Software Developer in a healthcare company, I adeptly manage diverse modules of our products while ensuring seamless client support. Additionally, I excel in offering technical assistance and guidance to my team members, fostering strong relationships built on trust and reliability. I've collaborated with cross-functional teams to deliver high-quality solutions that address different challenges. My multifaceted experience encompasses the intricacies of healthcare software development coupled with a proactive approach to client engagement, driving innovation and enhancing operational efficiency.",
-        "Phone": "9641157205",
-        "Email": "nsarfaraz@email.com",
-        "Website": "http://google.com",
-        "Current Company": "ZeOmega Infotech Pvt Ltd",
-        "Birthday": "25 February 1994",
-        "City": "Bengaluru, India",
-        "Degree": "Bachelor Of Technology",
-        "Self Facts": "As someone who may not fit the conventional mold of being photogenic, I bring a depth of thoughtfulness and introspection to every interaction. My focus lies not in outward appearance but in cultivating meaningful connections and delivering impactful results. Through thoughtful analysis and consideration, I approach challenges with insight and empathy, striving to create genuine value in all endeavors."
-    }
+    About DB Structure Model
     '''
+    __tablename__ = "about"
 
-    @staticmethod
-    def insert_or_update(payload):
-        mongo.db.about.update_one({'Email': payload['Email']}, {'$set': payload}, upsert=True)
-
-    @staticmethod
-    def fetch_about():
-        return list(mongo.db.about.find())
-
-    @staticmethod
-    def fetch_exact_about(email):
-        return list(mongo.db.about.find({'Email': email}))
-
-    @staticmethod
-    def delete_about(del_email):
-        mongo.db.about.delete_one({'Email': del_email['Email']})
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    birthday = db.Column(db.String(50), nullable=False)
+    city = db.Column(db.String(100), nullable=False)
+    created_date = db.Column(db.DateTime(timezone=True), default=func.now(), nullable=False)
+    current_company = db.Column(db.String(150), nullable=False)
+    current_designation = db.Column(db.String(100), nullable=False)
+    degree = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(1000), nullable=False)
+    phone = db.Column(db.BigInteger, unique=True, nullable=False)
+    self_facts = db.Column(db.String(500), nullable=False)
+    short_description = db.Column(db.String(500), nullable=False)
+    summary = db.Column(db.String(500), nullable=False)
+    updated_date = db.Column(db.DateTime(timezone=True), default=func.now(), nullable=False)
+    website = db.Column(db.String(50), unique=True, nullable=False)

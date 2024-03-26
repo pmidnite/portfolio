@@ -8,7 +8,8 @@ def generate_token():
     try:
         userkey = request.json.get("username")
         passkey = request.json.get("password")
-        if userkey == "zarafras" and passkey == "Pass@321":
+        # This can be matched with DB user details value
+        if userkey == "test" and passkey == "Password":
             access_token = create_access_token(identity=userkey)
             return jsonify(access_token=access_token), 200
     except:

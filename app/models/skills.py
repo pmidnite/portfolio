@@ -1,61 +1,25 @@
-# Model for Skills
-from app import mongo
+from app.utilities.database import db
+from app.models.about import About
 
-class Skills:
+
+class Skills(db.Model):
     '''
-    Sample Payload
-    --------------
-    {
-        "Skill Name": "Python",
-        "Skill Logo": "https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/python/python-original-wordmark.svg"
-    }
+    Skill DB Structure Model
     '''
+    __tablename__ = "skill"
 
-    @staticmethod
-    def fetch_skills():
-        return list(mongo.db.skills.find())
-
-    @staticmethod
-    def fetch_exact_skill(name):
-        return list(mongo.db.skills.find({"Skill Name": name}))
-
-    @staticmethod
-    def insert_or_update_skill(payload):
-        if len(payload) > 1:
-            for load in payload:
-                mongo.db.skills.update_one({"Skill Name": load["Skill Name"]}, {"$set": load}, upsert=True)
-        else:
-            mongo.db.skills.update_one({"Skill Name": payload["Skill Name"]}, {"$set": payload}, upsert=True)
-
-    @staticmethod
-    def delete_skill(payload):
-        mongo.db.skills.delete_one({"Skill Name": payload["Skill Name"]})
+    id = db.Column(db.Integer, primary_key=True)
+    skill_name = db.Column(db.String(120), unique=True, nullable=False)
+    skill_logo = db.Column(db.String(300), nullable=False)
 
 
-class MappedSkills:
+class MappedSkills(db.Model):
     '''
-    Mapped Skill Payload
-    --------------------
-    {
-        "Email": "nsarfaraz@email.com",
-        "Skill Names": "Python, Angularjs"
-    }
+    Skill DB Structure Model
     '''
+    __tablename__ = "mapped_skill"
 
-    @staticmethod
-    def insert_or_update_mapped_skill(payload):
-        mongo.db.skills_map.update_one({"Email": payload["Email"]},
-            {"$set": payload},
-            upsert=True)
-
-    @staticmethod
-    def fetch_exact_mapped_skill(email):
-        return list(mongo.db.skills_map.find({"Email": email}))
-
-    @staticmethod
-    def fetch_mapped_skill():
-        return list(mongo.db.skills_map.find())
-
-    @staticmethod
-    def delete_mapped_skill(email):
-        mongo.db.skills_map.delete_one({"Email": email})
+    id = db.Column(db.Integer, primary_key=True)
+    about_id = db.Column(db.ForeignKey(About.id))
+    skill_id = db.Column(db.ForeignKey(Skills.id))
+    __table_args__ = (db.UniqueConstraint(about_id, skill_id, name="about_skill_uk"),)

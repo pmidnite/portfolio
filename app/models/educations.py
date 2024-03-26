@@ -1,37 +1,22 @@
-# Model educations.py
+from app.utilities.database import db
+from sqlalchemy.sql import func
+from app.models.about import About
 
-from app import mongo
 
-class Education:
+class Education(db.Model):
     '''
-    Sample Payload
-    --------------
-    {
-        "Email": "nsarfaraz@email.com",
-        "Start Year": "2012",
-        "Address": "Asansol, West Bengal",
-        "Degree": "Bachelor Of Technology",
-        "Passing Year": "2016",
-        "University": "West Bengal University Of Technology"
-    }
+    Education DB Structure Model
     '''
+    __tablename__ = "education"
 
-    @staticmethod
-    def fetch_education():
-        return list(mongo.db.educations.find())
+    id = db.Column(db.Integer, primary_key=True)
+    start_year = db.Column(db.String(4), nullable=False)
+    address = db.Column(db.String(100), nullable=False)
+    created_date = db.Column(db.DateTime(timezone=True), default=func.now(), nullable=False)
+    degree = db.Column(db.String(150), nullable=False)
+    passing_year = db.Column(db.String(4), nullable=False)
+    university = db.Column(db.String(1000), nullable=False)
+    updated_date = db.Column(db.DateTime(timezone=True), default=func.now(), nullable=False)
+    email = db.Column(db.ForeignKey(About.email), nullable=False)
     
-    @staticmethod
-    def fetch_exact_education(email, year=None):
-        if year:
-            return list(mongo.db.educations.find({'Email': email, 'Start Year': year}))
-        else:
-            return list(mongo.db.educations.find({'Email': email}))
-    
-    @staticmethod
-    def insert_or_update_education(payload):
-        mongo.db.educations.update_one({'Email': payload['Email'], 'Start Year': payload['Start Year']},
-                                       {'$set': payload}, upsert=True)
-
-    @staticmethod
-    def delete_education(payload):
-        mongo.db.educations.delete_one({'Email': payload['Email']})
+    __table_args__ = (db.UniqueConstraint(email, start_year, name="email_start_yr_uk"),)

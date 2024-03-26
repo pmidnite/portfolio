@@ -1,41 +1,15 @@
-from app import mongo
+from app.utilities.database import db
 
-
-class Testimonials:
+class Testimonials(db.Model):
     '''
-    Sample Payload
-    --------------
-    {
-        "Name": "Siddharth",
-        "Designation": "Software Developer",
-        "Company": "ABC Infotech Pvt Ltd",
-        "Testimony": "He is a exceptional team player, available to guide and help at all time",
-        "Reviewed": "N"(By Admin only)
-    }
+    Testimony DB Structure Model
     '''
+    __tablename__ = "testimony"
 
-    @staticmethod
-    def fetch_testimonial():
-        return list(mongo.db.testimonials.find())
-
-    @staticmethod
-    def fetch_exact_testimonial(name, company):
-        return list(mongo.db.testimonials.find({"Name": name, "Email": company}))
-
-    @staticmethod
-    def insert_or_update_testimonial(payload):
-        payload.update({"Reviewed": "N"})
-        mongo.db.testimonials.update_one({"Name": payload["Name"],
-                                          "Email": payload.get("Email")},
-                                         {"$set": payload},
-                                         upsert=True)
-
-    @staticmethod
-    def delete_testimonial(payload):
-        mongo.db.testimonials.delete_one({"Name": payload["Name"], "Email": payload.get("Email")})
-
-    @staticmethod
-    def review_testimonial(name, company, is_reviewed="N"):
-        mongo.db.testimonials.update_one({"Name": name, "Email": company},
-                                         {"$set": {"Reviewed": is_reviewed}},
-                                         upsert=True)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    company = db.Column(db.String(150), nullable=True)
+    designation = db.Column(db.String(200), nullable=False)
+    message = db.Column(db.String(1000), nullable=False)
+    reviewed = db.Column(db.String(1), nullable=False)
