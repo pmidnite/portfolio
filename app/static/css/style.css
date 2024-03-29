@@ -470,13 +470,13 @@ section {
 
 .skill-name-logo img {
     position: relative;
-    display: block;
+    display: inline-flex;
     padding: 10px;
     width: 100px;
     margin: 5px;
 }
 
-.skill-name-logo:hover img {
+.skill-name-logo img:hover {
     border-radius: 10px;
     background-color: #F0E9EC;
 }

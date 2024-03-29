@@ -40,13 +40,13 @@ function fetchAndRenderSkill() {
     .then(response => response.json())
     .then(skill => {
       const dataContainer = document.getElementById('skills-content-id');
+      const div = document.createElement('div');
       skill.forEach(item => {
-        const div = document.createElement('div');
-        div.innerHTML = `
-            <img src="/static/${item['Skill Logo']}" alt="${item['Skill Name']}">
-          `;
-        div.setAttribute('class', 'skill-name-logo col-lg-2');
-        div.setAttribute('title', `${item['Skill Name']}`);
+        const img = document.createElement('img');
+        img.setAttribute('src', "/static/" + `${item['Skill Logo']}`);
+        img.setAttribute('title', `${item['Skill Name']}`);
+        div.setAttribute('class', 'skill-name-logo');
+        div.appendChild(img);
         dataContainer.appendChild(div);
       })
     })

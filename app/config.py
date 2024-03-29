@@ -7,7 +7,7 @@ JWT_SECRET_KEY = "JWT ACCESS KEY"
 
 SQLALCHEMY_DATABASE_URI = "mysql+pymysql://{username}:{password}@{hostname}/{databasename}".format(
     username="root",
-    password="Password",
+    password="Passw0rd!23",
     hostname="localhost",
     databasename="portfolio",
     )
