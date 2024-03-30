@@ -13,7 +13,7 @@ class About:
         "Email": "nsarfaraz@email.com",
         "Website": "http://google.com",
         "Current Company": "ZeOmega Infotech Pvt Ltd",
-        "Birthday": "25 February 1994",
+        "Birthday": "25 February 1994", -- Deprecated
         "City": "Bengaluru, India",
         "Degree": "Bachelor Of Technology",
         "Self Facts": "As someone who may not fit the conventional mold of being photogenic, I bring a depth of thoughtfulness and introspection to every interaction. My focus lies not in outward appearance but in cultivating meaningful connections and delivering impactful results. Through thoughtful analysis and consideration, I approach challenges with insight and empathy, striving to create genuine value in all endeavors."
