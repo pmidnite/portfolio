@@ -10,7 +10,6 @@ class About(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    birthday = db.Column(db.String(50), nullable=False)
     city = db.Column(db.String(100), nullable=False)
     created_date = db.Column(db.DateTime(timezone=True), default=func.now(), nullable=False)
     current_company = db.Column(db.String(150), nullable=False)

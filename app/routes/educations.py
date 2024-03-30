@@ -65,5 +65,5 @@ def delete_education():
             return jsonify({"message": "Education: {0} deleted successfully".format(is_exists)})
         else:
             return jsonify({"message": "No education exists for Email: {0}.".format(del_payload.get("Email"))})
-    except Exception as e:
-        return jsonify({"Message": "Missing/Wrong data while delete education: {0}.".format(e)})
+    except Exception:
+        return jsonify({"Message": "Missing/Wrong data while delete education."})

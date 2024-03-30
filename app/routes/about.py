@@ -45,11 +45,14 @@ def insert_or_update_about():
 @bp.route('', methods=['DELETE'])
 @jwt_required()
 def delete_about():
-    del_payload = request.json
-    is_exists = About.query.filter_by(email=del_payload.get('Email')).first()
-    if is_exists:
-        db.session.delete(is_exists)
-        db.session.commit()
-        return jsonify({'message': 'About deleted successfully'})
-    else:
-        return jsonify({'message': "Email: {0} doesn't exists.".format(del_payload.get('Email'))})
+    try:
+        del_payload = request.json
+        is_exists = About.query.filter_by(email=del_payload.get('Email')).first()
+        if is_exists:
+            db.session.delete(is_exists)
+            db.session.commit()
+            return jsonify({'message': 'About deleted successfully'})
+        else:
+            return jsonify({'message': "Email: {0} doesn't exists.".format(del_payload.get('Email'))})
+    except:
+        return jsonify({"Message": "Some exception occured."})

@@ -46,13 +46,17 @@ def insert_or_update_skill():
 @bp.route("", methods=["DELETE"])
 @jwt_required()
 def delete_skill():
-    del_payload = request.json
-    is_exists = Skills.fetch_exact_skill(del_payload.get("Skill Name"))
-    if is_exists:
-        Skills.delete_skill(del_payload)
-        return jsonify({"message": "Skill -> {0} deleted successfully".format(is_exists[0])})
-    else:
-        return jsonify({"message": "Skill -> {0} doesn't exists".format(del_payload.get('Skill Name'))})
+    try:
+        del_payload = request.json
+        is_exists = Skills.query.filter_by(skill_name=del_payload.get("Skill Name")).first()
+        if is_exists:
+            db.session.delete(is_exists)
+            db.session.commit()
+            return jsonify({"message": "Skill -> {0} deleted successfully".format(is_exists)})
+        else:
+            return jsonify({"message": "Skill -> {0} doesn't exists".format(del_payload.get('Skill Name'))})
+    except Exception:
+        return jsonify({"Message": "Some exception occured."})
 
 @bp.route("/mapping", methods=["POST", "PATCH"])
 @jwt_required()
@@ -92,6 +96,7 @@ def fetch_mapped_skill():
 
 @bp.route("/mapping/exact", methods=["GET"])
 def fetch_exact_mapped_skill():
+    # Doing this for one user only
     about = About.query.first()
     mapped_skills = MappedSkills.query.filter_by(about_id=about.id).order_by(MappedSkills.id.asc()).all()
     exact_skills = []
@@ -102,10 +107,17 @@ def fetch_exact_mapped_skill():
 @bp.route("/mapping", methods=["DELETE"])
 @jwt_required()
 def delete_mapped_skill():
-    del_payload = request.json
-    is_mapping_exists = MappedSkills.fetch_exact_mapped_skill(del_payload["Email"])
-    if is_mapping_exists:
-        MappedSkills.delete_mapped_skill(del_payload["Email"])
-        return jsonify({"Message": "Deleted the Skill mapping successfully for Email: {0}".
-            format(del_payload["Email"])})
-    return jsonify({"Message": "No Mapping exists to delete for the Email: {0}".format(del_payload["Email"])})
+    try:
+        del_payload = request.json
+        about = About.query.filter_by(email=del_payload.get("Email")).first()
+        skill = Skills.query.filter_by(skill_name=del_payload.get("Skill Name")).first()
+        is_mapping_exists = MappedSkills.query.filter_by(about_id=about.id, skill_id=skill.id).first()
+        if is_mapping_exists:
+            db.session.delete(is_mapping_exists)
+            db.session.commit()
+            return jsonify({"Message": "Delete successful for mapped Skill {0} for Email: {1}".
+                format(del_payload.get("Skill Name"), del_payload.get("Email"))})
+        return jsonify({"Message": "No Mapping exists to delete for the Email: {0} with skill: {1}".\
+                        format(del_payload.get("Email"), del_payload.get("Skill Name"))})
+    except Exception:
+        return jsonify({"Message": "Some exception occured."})

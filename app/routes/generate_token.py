@@ -10,7 +10,8 @@ def generate_token():
         passkey = request.json.get("password")
         # This can be matched with DB user details value
         if userkey == "test" and passkey == "Password":
-            access_token = create_access_token(identity=userkey)
+            access_token = create_access_token(identity={"username": userkey,
+                                                         "password": passkey})
             return jsonify(access_token=access_token), 200
     except:
         return jsonify({"Message": "Invalid credentials."}), 401

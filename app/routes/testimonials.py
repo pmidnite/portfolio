@@ -19,7 +19,7 @@ def fetch_testimonials():
     if testimonials:
         return json_util.dumps(map_class_to_dict(testimony) for testimony in testimonials)
     else:
-        return jsonify({"Message": "No Testimony found."})
+        return jsonify({"Message": "No Reviewed Testimony found."})
 
 @bp.route('', methods=["POST", "PATCH"])
 # @jwt_required()
@@ -51,28 +51,38 @@ def insert_or_update_testimonial():
 @bp.route('', methods=["DELETE"])
 @jwt_required()
 def delete_testimonial():
-    # TODO: Fix for Mysql changes
-    del_payload = request.json
-    is_testimony_exists = Testimonials.fetch_exact_testimonial(del_payload.get("Name"), del_payload.get("Email"))
-    if is_testimony_exists:
-        Testimonials.delete_testimonial(del_payload)
-        return jsonify({"Message": "Testimony of user {0} from company {1} is deleted successfully.".
+    try:
+        del_payload = request.json
+        is_testimony_exists = Testimonials.query.filter_by(name=del_payload.get("Name"), email=del_payload.get("Email")).first()
+        if is_testimony_exists:
+            db.session.delete(is_testimony_exists)
+            db.session.commit()
+            return jsonify({"Message": "Testimony of user {0} with email {1} is deleted successfully.".
+                            format(del_payload.get("Name"), del_payload.get("Email"))})
+        return jsonify({"Message": "Testimony of user {0} with email {1} doesn't exists.".
                         format(del_payload.get("Name"), del_payload.get("Email"))})
-    return jsonify({"Message": "Testimony of user {0} from company {1} doesn't exists.".
-                    format(del_payload.get("Name"), del_payload.get("Email"))})
+    except Exception:
+        return jsonify({"Message": "Some exception occured."})
 
 @bp.route('/review', methods=["PATCH"])
 @jwt_required()
 def review_testimony():
     review_payload = request.json
-    is_testimony_exists = Testimonials.query.filter_by(email=review_payload.get("Email")).all()
+    is_testimony_exists = Testimonials.query.filter_by(email=review_payload.get("Email")).first()
     is_review_col = review_payload.get("Reviewed")
     if is_testimony_exists and is_review_col:
-        is_testimony_exists[0].reviewed = "Y"
-        db.session.add(is_testimony_exists[0])
-        db.session.commit()
-        return jsonify({"Message": "Testimony of user {0} is reviewed.".
-                        format(review_payload.get("Email"))})
+        if is_testimony_exists.reviewed == "Y":
+            return jsonify({"Message": "Testimony of user {0} is already reviewed.".
+                            format(review_payload.get("Email"))})
+        elif is_review_col == "Y":
+            is_testimony_exists.reviewed = is_review_col
+            db.session.add(is_testimony_exists)
+            db.session.commit()
+            return jsonify({"Message": "Testimony of user {0} is reviewed.".
+                            format(review_payload.get("Email"))})
+        else:
+            return jsonify({"Message": "Testimony of user {0} review is unsuccessful.".
+                            format(review_payload.get("Email"))})
     elif not is_testimony_exists:
         return jsonify({"Message": "Testimony of user {0} doesn't exists.".
                         format(review_payload.get("Email"))})

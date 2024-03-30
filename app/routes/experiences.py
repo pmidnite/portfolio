@@ -50,12 +50,17 @@ def insert_or_update_experience():
 @bp.route('', methods=["Delete"])
 @jwt_required()
 def delete_experience():
-    # TODO: MYSQL changes
-    del_payload = request.json
-    is_exp_exists = Experiences.fetch_exact_experience(del_payload["Email"],
-                                                       del_payload.get("Start Year"))
-    if is_exp_exists:
-        Experiences.delete_experience(del_payload)
-        return jsonify({"Message": "Deleted experince: {0} for Email: {1}".format(is_exp_exists,
-                                                                                  del_payload["Email"])})
-    return jsonify({"Message": "No experience exists for Email: {0}.".format(del_payload.get("Email"))})
+    try:
+        del_payload = request.json
+        is_exp_exists = Experiences.query.filter_by(email=del_payload.get('Email'),
+                                                    start_year=del_payload.get("Start Year")).first()
+        if is_exp_exists:
+            db.session.delete(is_exp_exists)
+            db.session.commit()
+            return jsonify({"Message": "Deleted experience: {0} for Email: {1}".format(is_exp_exists,
+                                                                                    del_payload["Email"])})
+        return jsonify({"Message": "No experience exists for Email: {0} with Start Year: {1}.".\
+                        format(del_payload.get("Email"),
+                               del_payload.get("Start Year"))})
+    except Exception:
+        return jsonify({"Message": "Some exception occured."})
