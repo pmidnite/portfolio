@@ -19,3 +19,9 @@ class Config:
     SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI
     SQLALCHEMY_POOL_RECYCLE = 299
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Outlook/hotmail Mail configs
+    MAIL_SERVER = 'smtp-mail.outlook.com'
+    MAIL_PORT = 587
+    MAIL_USE_TLS = True
+    MAIL_USERNAME = 'myemail@outlook.com'
+    MAIL_PASSWORD = 'mypassword'

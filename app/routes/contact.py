@@ -4,7 +4,9 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from bson import json_util
 from datetime import datetime
+from flask_mail import Message
 from app.utilities.sql_utils import *
+from app.utilities.mail_config import mail
 from app.models.contact import Contact
 
 bp = Blueprint("contact", __name__, url_prefix="/api/contact")
@@ -38,6 +40,28 @@ def insert_or_update_contact():
                 unavailable_column.append(key)
         db.session.add(new_contact_obj)
         db.session.commit()
+
+        # Get form payload data
+        name = contact_payload.get('Name')
+        email = contact_payload.get('Email')
+        company = contact_payload.get('Company')
+        designation = contact_payload.get('Designation')
+        message = contact_payload.get('Message')
+
+        # Send email to sender
+        subject = "Thank you for reaching out to me."
+        revert_message = "Thank You {0} for your valuable message, I will revert back to you soon.".format(name)
+        msg = Message(subject=subject, sender='myemail@outlook.com', recipients=[email])
+        msg.body = revert_message
+        mail.send(msg)
+
+        # Recieve a notification regarding the message
+        subject = "You got a new message from your portfolio website."
+        notification = Message(subject=subject, sender='myemail@outlook.com', recipients=['myemail@outlook.com'])
+        notification.body = "You have got the below message from {0}({1}) from {2}\n\n{3}".\
+                            format(name, designation, company, message)
+        mail.send(notification)
+
         if unavailable_column:
             message = " except these values {0} as these column doesn't exists".format(unavailable_column)
             return jsonify({"Message": "Thank you for your message." + message})

@@ -8,6 +8,7 @@ from app.models import about, contact, educations,\
 from app.routes import about, educations, skills,\
                        experiences, testimonials, contact, generate_token
 from app.utilities.database import create_database
+from app.utilities.mail_config import mail_config
 
 
 jwt = JWTManager()
@@ -18,6 +19,7 @@ def create_app():
 
     jwt.init_app(app)
     create_database(app)
+    mail_config(app)
 
     @app.route("/")
     @app.route("/index")

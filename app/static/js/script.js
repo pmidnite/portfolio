@@ -213,7 +213,7 @@ function sendMessageOrContact(msgType) {
     .then(data => {
       console.log('Message sent:', data);
       alert(data.Message);
-      // Optionally, you can reset the form here
+      document.getElementsByClassName('contact-form')[0].reset();
     })
     .catch(error => {
       console.error('Error sending message:', error);
