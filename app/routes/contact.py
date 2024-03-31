@@ -5,6 +5,7 @@ from flask_jwt_extended import jwt_required
 from bson import json_util
 from datetime import datetime
 from flask_mail import Message
+from app.config import Config
 from app.utilities.sql_utils import *
 from app.utilities.mail_config import mail
 from app.models.contact import Contact
@@ -51,13 +52,13 @@ def insert_or_update_contact():
         # Send email to sender
         subject = "Thank you for reaching out to me."
         revert_message = "Thank You {0} for your valuable message, I will revert back to you soon.".format(name)
-        msg = Message(subject=subject, sender='myemail@outlook.com', recipients=[email])
+        msg = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[email])
         msg.body = revert_message
         mail.send(msg)
 
         # Recieve a notification regarding the message
         subject = "You got a new message from your portfolio website."
-        notification = Message(subject=subject, sender='myemail@outlook.com', recipients=['myemail@outlook.com'])
+        notification = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=['myemail@outlook.com'])
         notification.body = "You have got the below message from {0}({1}) from {2}\n\n{3}".\
                             format(name, designation, company, message)
         mail.send(notification)
@@ -68,7 +69,7 @@ def insert_or_update_contact():
         return jsonify({"Message": "Thank you for your message."})
 
     except:
-        return jsonify({"Message": "Missing some data while filling contact form."})
+        return jsonify({"Message": "Some exception occured."})
 
 @bp.route("", methods=["DELETE"])
 @jwt_required()
