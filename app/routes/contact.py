@@ -51,14 +51,14 @@ def insert_or_update_contact():
 
         # Send email to sender
         subject = "Thank you for reaching out to me."
-        revert_message = "Thank You {0} for your valuable message, I will revert back to you soon.".format(name)
-        msg = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[email])
-        msg.body = revert_message
-        mail.send(msg)
+        revert_message = "Thank You {0} for your valuable message, I will revert back to you soon.\n\nThanks,\nSarfaraz".format(name)
+        acknowledgement = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[email])
+        acknowledgement.body = revert_message
+        mail.send(acknowledgement)
 
         # Recieve a notification regarding the message
-        subject = "You got a new message from your portfolio website."
-        notification = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=['myemail@outlook.com'])
+        subject = "You got a new message from your PORTFOLIO Website."
+        notification = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[Config.MAIL_USERNAME])
         notification.body = "You have got the below message from {0}({1}) from {2}\n\n{3}".\
                             format(name, designation, company, message)
         mail.send(notification)
