@@ -4,9 +4,10 @@ from flask_pymongo import PyMongo
 from flask_jwt_extended import JWTManager
 from .config import Config
 from app.models import about, contact, educations,\
-                       experiences, skills, testimonials
+                       experiences, skills, testimonials, certification
 from app.routes import about, educations, skills,\
-                       experiences, testimonials, contact, generate_token
+                       experiences, testimonials, contact, generate_token,\
+                       certification
 from app.utilities.database import create_database
 from app.utilities.mail_config import mail_config
 
@@ -32,6 +33,7 @@ def create_app():
     app.register_blueprint(experiences.bp)
     app.register_blueprint(testimonials.bp)
     app.register_blueprint(contact.bp)
+    app.register_blueprint(certification.bp)
     app.register_blueprint(generate_token.bp)
 
     return app

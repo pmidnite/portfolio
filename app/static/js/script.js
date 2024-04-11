@@ -7,6 +7,7 @@ function loadAndRenderData() {
   fetchAndRenderExperience();
   fetchAndRenderTestimony();
   handleCheckboxSelection();
+  fetchAndRenderCerts();
 };
 
 
@@ -140,10 +141,10 @@ function fetchAndRenderTestimony() {
         ${item['Message']}
         <i class="bx bxs-quote-alt-right quote-icon-right"></i>`;
       h3.innerHTML = item['Name'];
-      if(item['Company']){
+      if (item['Company']) {
         h4.innerHTML = item['Designation'] + ' , ' + item['Company'];
       }
-      else{
+      else {
         h4.innerHTML = item['Designation'];
       }
       innerDiv.setAttribute('class', 'testimonial-item');
@@ -234,6 +235,34 @@ function handleCheckboxSelection() {
       });
     });
   });
+}
+
+function fetchAndRenderCerts() {
+  fetch('/api/certification')
+    .then(response => response.json())
+    .then(certs => {
+      const dataContainer = document.getElementsByClassName('portfolio-container')[0];
+      certs.forEach(item => {
+        const filter_div = document.createElement('div');
+        const wrap_div = document.createElement('div');
+        const anchor = document.createElement('a');
+        const img = document.createElement('img');
+        img.setAttribute('src', "/static/img/certs/" + `${item['Cert Logo']}`);
+        img.setAttribute('title', `${item['Cert Name']}`);
+        img.setAttribute('class', 'img-fluid');
+        anchor.setAttribute('href', `${item['Cert Url']}`);
+        anchor.setAttribute('target', '_blank');
+        anchor.appendChild(img);
+        wrap_div.appendChild(anchor);
+        wrap_div.setAttribute('class', 'portfolio-wrap');
+        filter_div.setAttribute('class', 'col-lg-4 col-md-6 portfolio-item filter-' + `${item['Cert Type']}`.toLowerCase().replace(' ', '-'));
+        filter_div.appendChild(wrap_div);
+        dataContainer.appendChild(filter_div);
+      })
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
 }
 
 document.getElementsByClassName('contact-form')[0].addEventListener('submit', function(event) {
