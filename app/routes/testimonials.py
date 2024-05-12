@@ -21,6 +21,15 @@ def fetch_testimonials():
     else:
         return jsonify({"Message": "No Reviewed Testimony found."})
 
+@bp.route('/all', methods=["GET"])
+@jwt_required()
+def fetch_all_testimonials():
+    testimonials = Testimonials.query.all()
+    if testimonials:
+        return json_util.dumps(map_class_to_dict(testimony) for testimony in testimonials)
+    else:
+        return jsonify({"Message": "No Testimony found."})
+
 @bp.route('', methods=["POST", "PATCH"])
 # @jwt_required()
 def insert_or_update_testimonial():
