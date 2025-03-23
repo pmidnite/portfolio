@@ -20,8 +20,9 @@ class Config:
     SQLALCHEMY_POOL_RECYCLE = 299
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     # Outlook/hotmail Mail configs
-    MAIL_SERVER = 'smtp-mail.outlook.com'
+    MAIL_SERVER = 'smtp.gmail.com'
     MAIL_PORT = 587
     MAIL_USE_TLS = True
-    MAIL_USERNAME = 'myemail@outlook.com'
-    MAIL_PASSWORD = 'mypassword'
+    MAIL_USERNAME = 'abc@gmail.com'
+    MAIL_PASSWORD = 'App Password'
+    MAIL_RECIPIENT = 'xyz@gmail.com'

@@ -71,7 +71,7 @@ def insert_or_update_testimonial():
 
         # Recieve a notification regarding the message
         subject = "You got a new testimony from your PORTFOLIO Website."
-        notification = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[Config.MAIL_USERNAME])
+        notification = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[Config.MAIL_USERNAME, Config.MAIL_RECIPIENT])
         notification.body = "You have got the below testimony from {0}({1}) from {2}\n\n{3}".\
                             format(name, designation, company, message)
         mail.send(notification)
