@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from bson import json_util
 from datetime import datetime
-from app.utilities.sql_utils import *
+from app.utilities.utils import *
 from flask_mail import Message
 from app.config import Config
 from app.utilities.mail_config import mail

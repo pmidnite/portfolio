@@ -2,7 +2,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from bson import json_util
 from datetime import datetime
-from app.utilities.sql_utils import *
+from app.utilities.utils import *
 from app.models.experiences import Experiences
 from app.models.about import About
 

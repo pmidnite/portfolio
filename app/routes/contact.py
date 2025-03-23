@@ -6,7 +6,7 @@ from bson import json_util
 from datetime import datetime
 from flask_mail import Message
 from app.config import Config
-from app.utilities.sql_utils import *
+from app.utilities.utils import *
 from app.utilities.mail_config import mail
 from app.models.contact import Contact
 

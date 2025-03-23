@@ -3,7 +3,7 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
 from datetime import datetime
 from bson import json_util
-from app.utilities.sql_utils import *
+from app.utilities.utils import *
 from app.models.educations import Education
 from app.models.about import About
 
