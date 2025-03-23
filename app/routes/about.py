@@ -12,7 +12,7 @@ bp = Blueprint('about', __name__, url_prefix='/api/about')
 def fetch_about():
     about = About.query.first()
     if about:
-        return json_util.dumps(map_class_to_dict(about))
+        return json_util.dumps(map_class_to_dict_all(about))
     else:
         return jsonify({"Message": "No data exists."})
 
