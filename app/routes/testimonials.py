@@ -29,7 +29,7 @@ def fetch_testimonials():
 def fetch_all_testimonials():
     testimonials = Testimonials.query.all()
     if testimonials:
-        return json_util.dumps(map_class_to_dict(testimony) for testimony in testimonials)
+        return json_util.dumps(map_class_to_dict_all(testimony) for testimony in testimonials)
     else:
         return jsonify({"Message": "No Testimony found."})
 
@@ -64,9 +64,9 @@ def insert_or_update_testimonial():
         # Send email to sender
         subject = "Thank you for your testimony about to me."
         revert_message = "Thank You {0} for your valuable testimony, You will be able to see it on my website once "
-        revert_message += "I approved it.\n\nThanks,\nSarfaraz".format(name)
+        revert_message += "I approved it.\n\nThanks,\nSarfaraz"
         acknowledgement = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[email])
-        acknowledgement.body = revert_message
+        acknowledgement.body = revert_message.format(name)
         mail.send(acknowledgement)
 
         # Recieve a notification regarding the message
@@ -104,23 +104,34 @@ def delete_testimonial():
 def review_testimony():
     review_payload = request.json
     is_testimony_exists = Testimonials.query.filter_by(email=review_payload.get("Email")).first()
-    is_review_col = review_payload.get("Reviewed")
-    if is_testimony_exists and is_review_col:
+    reviewed_to = review_payload.get("Reviewed")
+    if is_testimony_exists and reviewed_to:
         if is_testimony_exists.reviewed == "Y":
-            return jsonify({"Message": "Testimony of user {0} is already reviewed.".
-                            format(review_payload.get("Email"))})
-        elif is_review_col == "Y":
-            is_testimony_exists.reviewed = is_review_col
-            db.session.add(is_testimony_exists)
-            db.session.commit()
-            return jsonify({"Message": "Testimony of user {0} is reviewed.".
-                            format(review_payload.get("Email"))})
+            if reviewed_to == "Y":
+                return jsonify({"Message": "Testimony of user {0} is already reviewed.".
+                                format(review_payload.get("Email"))})
+            elif reviewed_to == "N":
+                is_testimony_exists.reviewed = reviewed_to
+                db.session.add(is_testimony_exists)
+                db.session.commit()
+                return jsonify({"Message": "Testimony of user {0} is not reviewed.".
+                                format(review_payload.get("Email"))})
+        elif is_testimony_exists.reviewed == "N":
+            if reviewed_to == "N":
+                return jsonify({"Message": "Testimony of user {0} is still not reviewed.".
+                                format(review_payload.get("Email"))})
+            if reviewed_to == "Y":
+                is_testimony_exists.reviewed = reviewed_to
+                db.session.add(is_testimony_exists)
+                db.session.commit()
+                return jsonify({"Message": "Testimony of user {0} is reviewed.".
+                                format(review_payload.get("Email"))})
         else:
             return jsonify({"Message": "Testimony of user {0} review is unsuccessful.".
                             format(review_payload.get("Email"))})
     elif not is_testimony_exists:
         return jsonify({"Message": "Testimony of user {0} doesn't exists.".
                         format(review_payload.get("Email"))})
-    elif not is_review_col:
+    elif not reviewed_to:
         return jsonify({"Message": "Testimony of user {0} is not reviewed due to unavailibity of review column.".
                         format(review_payload.get("Email"))})

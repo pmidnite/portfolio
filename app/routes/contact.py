@@ -17,7 +17,7 @@ bp = Blueprint("contact", __name__, url_prefix="/api/contact")
 def fetch_contact():
     contacts = Contact.query.all()
     if contacts:
-        return json_util.dumps(map_class_to_dict(contact) for contact in contacts)
+        return json_util.dumps(map_class_to_dict_all(contact) for contact in contacts)
     else:
         return jsonify({"Message": "No data exists."})
 
