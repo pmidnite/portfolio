@@ -3,6 +3,9 @@ from flask_jwt_extended import jwt_required
 from bson import json_util
 from datetime import datetime
 from app.utilities.sql_utils import *
+from flask_mail import Message
+from app.config import Config
+from app.utilities.mail_config import mail
 from app.models.testimonials import Testimonials
 
 
@@ -50,6 +53,29 @@ def insert_or_update_testimonial():
 
         db.session.add(final_obj)
         db.session.commit()
+
+        # Get form payload data
+        name = testimonial_payload.get('Name')
+        email = testimonial_payload.get('Email')
+        company = testimonial_payload.get('Company')
+        designation = testimonial_payload.get('Designation')
+        message = testimonial_payload.get('Message')
+
+        # Send email to sender
+        subject = "Thank you for your testimony about to me."
+        revert_message = "Thank You {0} for your valuable testimony, You will be able to see it on my website once "
+        revert_message += "I approved it.\n\nThanks,\nSarfaraz".format(name)
+        acknowledgement = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[email])
+        acknowledgement.body = revert_message
+        mail.send(acknowledgement)
+
+        # Recieve a notification regarding the message
+        subject = "You got a new testimony from your PORTFOLIO Website."
+        notification = Message(subject=subject, sender=Config.MAIL_USERNAME, recipients=[Config.MAIL_USERNAME])
+        notification.body = "You have got the below testimony from {0}({1}) from {2}\n\n{3}".\
+                            format(name, designation, company, message)
+        mail.send(notification)
+
         if unavailable_column:
             message = " except these values {0} as these column doesn't exists".format(unavailable_column)
             return jsonify({"Message": "Your Testimony has been recieved," + message})
