@@ -55,7 +55,7 @@ def insert_or_update_testimonial():
             return jsonify({"Message": "Your Testimony has been recieved," + message})
         return jsonify({"Message": "Thank You for your testimony about me, I will review and approve it soon."})
     except Exception as e:
-        return jsonify({"Message": "Some exception happened. {0}".format(e)})
+        return jsonify({"Message": "Some Error occured."})
 
 @bp.route('', methods=["DELETE"])
 @jwt_required()

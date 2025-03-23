@@ -69,7 +69,7 @@ def insert_or_update_contact():
         return jsonify({"Message": "Thank you for your message."})
 
     except:
-        return jsonify({"Message": "Some exception occured."})
+        return jsonify({"Message": "Some Error Occured."})
 
 @bp.route("", methods=["DELETE"])
 @jwt_required()
