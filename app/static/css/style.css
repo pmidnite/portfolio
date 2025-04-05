@@ -1144,12 +1144,3 @@ section {
 .gmap_iframe {
     height: 400px !important;
 }
-
-.portfolio-container {
-  position: relative;
-  transition: height 0.3s ease-in-out;
-}
-
-.portfolio-item {
-  transition: transform 0.3s ease-in-out;
-}

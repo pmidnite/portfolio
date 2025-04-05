@@ -258,33 +258,4 @@
    */
   new PureCounter();
 
-  // Initialize Isotope after images are loaded
-  window.addEventListener('load', function() {
-    let portfolioContainer = document.querySelector('.portfolio-container');
-    if (portfolioContainer) {
-      // Force layout recalculation
-      setTimeout(function() {
-        let iso = new Isotope(portfolioContainer, {
-          itemSelector: '.portfolio-item',
-          layoutMode: 'fitRows'
-        });
-        
-        // Trigger layout recalculation
-        iso.layout();
-      }, 100);
-    }
-  });
-
-  // Reinitialize Isotope on window resize
-  window.addEventListener('resize', function() {
-    let portfolioContainer = document.querySelector('.portfolio-container');
-    if (portfolioContainer) {
-      let iso = new Isotope(portfolioContainer, {
-        itemSelector: '.portfolio-item',
-        layoutMode: 'fitRows'
-      });
-      iso.layout();
-    }
-  });
-
 })()
