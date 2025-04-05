@@ -1,411 +1,233 @@
 // static/script.js
-// Cache DOM elements
-const DOM = {
-  contactForm: document.getElementsByClassName('contact-form')[0],
-  skillsContainer: document.getElementById('skills-content-id'),
-  educationContainer: document.getElementById('education'),
-  experienceContainer: document.getElementById('experience'),
-  portfolioContainer: document.getElementsByClassName('portfolio-container')[0],
-  testimonialsSlider: document.querySelector('.testimonials-slider'),
-  // Cache form elements
-  nameInput: document.getElementById('name'),
-  emailInput: document.getElementById('email'),
-  companyInput: document.getElementById('company'),
-  designationInput: document.getElementById('designation'),
-  messageInput: document.getElementsByName('message')[0],
-  submitButton: document.querySelector('.contact-form button[type="submit"]')
-};
-
-// Cache for API responses with TTL (Time To Live)
-const apiCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-// Loading states
-const loadingStates = {
-  about: false,
-  skills: false,
-  education: false,
-  experience: false,
-  testimony: false,
-  certs: false
-};
-
-// Debounce function for performance
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-// Memoize function for expensive computations
-function memoize(func) {
-  const cache = new Map();
-  return function (...args) {
-    const key = JSON.stringify(args);
-    if (cache.has(key)) {
-      return cache.get(key);
-    }
-    const result = func.apply(this, args);
-    cache.set(key, result);
-    return result;
-  };
-}
-
-// Intersection Observer for lazy loading
-const lazyLoadObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      const img = entry.target;
-      img.src = img.dataset.src;
-      img.removeAttribute('data-src');
-      lazyLoadObserver.unobserve(img);
-    }
-  });
-}, {
-  rootMargin: '50px 0px',
-  threshold: 0.1
-});
-
 document.addEventListener('DOMContentLoaded', loadAndRenderData);
+function loadAndRenderData() {
+  fetchAndRenderAbout();
+  fetchAndRenderSkill();
+  fetchAndRenderEducation();
+  fetchAndRenderExperience();
+  fetchAndRenderTestimony();
+  handleCheckboxSelection();
+  fetchAndRenderCerts();
+};
 
-async function loadAndRenderData() {
-  try {
-    showLoadingStates();
-    
-    // Load data concurrently with caching and error handling
-    const results = await Promise.allSettled([
-      fetchAndRenderAbout(),
-      fetchAndRenderSkill(),
-      fetchAndRenderEducation(),
-      fetchAndRenderExperience(),
-      fetchAndRenderTestimony(),
-      fetchAndRenderCerts()
-    ]);
-    
-    // Handle any failed promises
-    results.forEach((result, index) => {
-      if (result.status === 'rejected') {
-        console.error(`Failed to load section ${index}:`, result.reason);
+
+function fetchAndRenderAbout() {
+  fetch('/api/about')
+    .then(response => response.json())
+    .then(data => {
+      cls_data_mapper = {
+        "short-desc": "Short Description", "long-desc": "Description",
+        "current-desig": "Current Designation", "current-company": "Current Company",
+        "current-birthday": "Birthday", "current-website": "Website",
+        "current-city": "City", "current-degree": "Degree",
+        "current-phone": "Phone", "current-email": "Email",
+        "current-fact": "Self Facts", "education-summary": "Summary"
+      };
+      for (i in cls_data_mapper) {
+        const elements = document.querySelectorAll('.' + i);
+        elements.forEach(el => {
+          el.innerHTML = data[cls_data_mapper[i]];
+        });
       }
+      // document.getElementsByClassName(i).innerHTML = data[0][id_data_mapper[i]];
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
     });
-    
-    handleCheckboxSelection();
-  } catch (error) {
-    console.error('Error loading data:', error);
-  } finally {
-    hideLoadingStates();
-  }
 }
 
-function showLoadingStates() {
-  Object.keys(loadingStates).forEach(key => {
-    const container = document.querySelector(`#${key}-container`);
-    if (container) {
-      container.classList.add('loading');
-    }
-  });
-}
-
-function hideLoadingStates() {
-  Object.keys(loadingStates).forEach(key => {
-    const container = document.querySelector(`#${key}-container`);
-    if (container) {
-      container.classList.remove('loading');
-    }
-  });
-}
-
-async function fetchWithCache(url, options = {}) {
-  const cacheKey = `${url}-${JSON.stringify(options)}`;
-  const cachedData = apiCache.get(cacheKey);
-  
-  if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
-    return cachedData.data;
-  }
-
-  const response = await fetch(url, options);
-  const data = await response.json();
-  
-  apiCache.set(cacheKey, {
-    data,
-    timestamp: Date.now()
-  });
-  
-  return data;
-}
-
-// Memoized data mapper
-const getDataMapper = memoize((type) => {
-  const mappers = {
-    about: {
-      "short-desc": "Short Description", "long-desc": "Description",
-      "current-desig": "Current Designation", "current-company": "Current Company",
-      "current-birthday": "Birthday", "current-website": "Website",
-      "current-city": "City", "current-degree": "Degree",
-      "current-phone": "Phone", "current-email": "Email",
-      "current-fact": "Self Facts", "education-summary": "Summary"
-    }
-  };
-  return mappers[type] || {};
-});
-
-async function fetchAndRenderAbout() {
-  try {
-    const data = await fetchWithCache('/api/about');
-    const mapper = getDataMapper('about');
-    
-    // Batch DOM updates using requestAnimationFrame
-    const updates = [];
-    for (const [key, value] of Object.entries(mapper)) {
-      const elements = document.querySelectorAll('.' + key);
-      elements.forEach(el => {
-        updates.push(() => el.innerHTML = data[value]);
-      });
-    }
-    
-    requestAnimationFrame(() => {
-      updates.forEach(update => update());
-    });
-  } catch (error) {
-    console.error('Error fetching about data:', error);
-  }
-}
-
-async function fetchAndRenderSkill() {
-  try {
-    const skill = await fetchWithCache('/api/skill/mapping/exact');
-    const fragment = document.createDocumentFragment();
-    
-    // Create a single container div for all skills
-    const skillsContainer = document.createElement('div');
-    skillsContainer.className = 'skill-name-logo';
-    
-    skill.forEach(item => {
-      const img = new Image();
-      img.dataset.src = "/static/" + item['Skill Logo'];
-      img.title = item['Skill Name'];
-      img.className = 'lazy-load';
-      
-      lazyLoadObserver.observe(img);
-      skillsContainer.appendChild(img);
-    });
-    
-    fragment.appendChild(skillsContainer);
-    DOM.skillsContainer.appendChild(fragment);
-  } catch (error) {
-    console.error('Error fetching skill data:', error);
-  }
-}
-
-async function fetchAndRenderEducation() {
-  try {
-    const education = await fetchWithCache('/api/education');
-    const fragment = document.createDocumentFragment();
-    
-    education.forEach(item => {
+function fetchAndRenderSkill() {
+  fetch('/api/skill/mapping/exact')
+    .then(response => response.json())
+    .then(skill => {
+      const dataContainer = document.getElementById('skills-content-id');
       const div = document.createElement('div');
-      div.className = 'resume-item';
-      
-      // Use template literal for better performance
-      div.innerHTML = `
-        <h4>${item['Degree']}</h4>
-        <h5>${item['Start Year']} - ${item['Passing Year']}</h5>
-        <p><em>${item['University']}, ${item['Address']}</em></p>
-      `;
-      
-      fragment.appendChild(div);
+      skill.forEach(item => {
+        const img = document.createElement('img');
+        img.setAttribute('src', "/static/" + `${item['Skill Logo']}`);
+        img.setAttribute('title', `${item['Skill Name']}`);
+        div.setAttribute('class', 'skill-name-logo');
+        div.appendChild(img);
+        dataContainer.appendChild(div);
+      })
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
     });
-    
-    DOM.educationContainer.appendChild(fragment);
-  } catch (error) {
-    console.error('Error fetching education data:', error);
-  }
 }
 
-async function fetchAndRenderExperience() {
-  try {
-    const experience = await fetchWithCache('/api/experience');
-    const fragment = document.createDocumentFragment();
-    
-    experience.forEach((item, index) => {
-      const div = document.createElement('div');
-      div.className = 'col-lg-6';
-      div.setAttribute('data-aos', 'fade-up');
-      
-      const innerDiv = document.createElement('div');
-      innerDiv.className = 'resume-item';
-      
-      const h3 = document.createElement('h3');
-      h3.className = 'resume-title';
-      if (index === 0) {
-        h3.textContent = 'Professional Experience';
-      } else if (index + 1 === Math.ceil(experience.length / 2)) {
-        h3.style.height = '30px';
-      }
-      
-      innerDiv.innerHTML = `
-        <h4>${item['Designation']}</h4>
-        <h5>${item['Start Year']} - ${item['End Year']}</h5>
-        <p><em>${item['Company Name']}, ${item['Address']}</em></p>
-        <ul>${item['Description']}</ul>
-      `;
-      
-      div.append(h3, innerDiv);
-      fragment.appendChild(div);
+function fetchAndRenderEducation() {
+  fetch('/api/education')
+    .then(response => response.json())
+    .then(education => {
+      const educationContainer = document.getElementById('education');
+      education.forEach(item => {
+        const h4 = document.createElement('h4');
+        const h5 = document.createElement('h5');
+        const p = document.createElement('p');
+        const div = document.createElement('div');
+        div.setAttribute('class', 'resume-item');
+        h4.innerHTML = item['Degree'];
+        h5.innerHTML = item['Start Year'] + ' - ' + item['Passing Year'];
+        p.innerHTML = `<em>${item['University'] + ', ' + item['Address']}</em>`;
+        div.append(h4, h5, p);
+        educationContainer.appendChild(div);
+      })
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
     });
-    
-    DOM.experienceContainer.appendChild(fragment);
-  } catch (error) {
-    console.error('Error fetching experience data:', error);
-  }
 }
 
-async function fetchAndRenderTestimony() {
-  try {
-    const data = await fetchWithCache("/api/testimonial");
-    
-    if (!data) {
-      console.error("Failed to load testimonials");
-      return;
-    }
-
-    // Handle both array and object responses
-    const testimonyData = Array.isArray(data) ? data : Object.values(data);
-    renderSwiperTestimony(testimonyData);
-  } catch (error) {
-    console.error("Failed to load testimonials");
-  }
-}
-
-function renderSwiperTestimony(data) {
-  if (!data) {
-    return;
-  }
-
-  // Ensure we have an array to work with
-  const testimonyArray = Array.isArray(data) ? data : Object.values(data);
-  
-  if (!Array.isArray(testimonyArray)) {
-    return;
-  }
-
-  const swiperWrapper = DOM.testimonialsSlider.querySelector(".swiper-wrapper");
-  const fragment = document.createDocumentFragment();
-
-  testimonyArray.forEach(item => {
-    if (!item || typeof item !== "object") {
-      return;
-    }
-
-    const slideDiv = document.createElement("div");
-    slideDiv.className = "swiper-slide";
-
-    const testimonialDiv = document.createElement("div");
-    testimonialDiv.className = "testimonial-item";
-    testimonialDiv.setAttribute("data-aos", "fade-up");
-
-    testimonialDiv.innerHTML = `
-      <p>
-        <i class="bx bxs-quote-alt-left quote-icon-left"></i>
-        ${item.Message || ""}
-        <i class="bx bxs-quote-alt-right quote-icon-right"></i>
-      </p>
-      <h3>${item.Name || ""}</h3>
-      <h4>${item.Company ? `${item.Designation || ""}, ${item.Company}` : item.Designation || ""}</h4>
-    `;
-
-    slideDiv.appendChild(testimonialDiv);
-    fragment.appendChild(slideDiv);
-  });
-
-  swiperWrapper.innerHTML = "";
-  swiperWrapper.appendChild(fragment);
-
-  if (!DOM.testimonialsSlider.swiper) {
-    DOM.testimonialsSlider.swiper = new Swiper(".testimonials-slider", {
-      speed: 600,
-      loop: true,
-      autoplay: {
-        delay: 5000,
-        disableOnInteraction: false
-      },
-      slidesPerView: "auto",
-      pagination: {
-        el: ".swiper-pagination",
-        type: "bullets",
-        clickable: true
-      },
-      breakpoints: {
-        320: {
-          slidesPerView: 1,
-          spaceBetween: 20
-        },
-        1200: {
-          slidesPerView: 3,
-          spaceBetween: 20
+function fetchAndRenderExperience() {
+  fetch('/api/experience')
+    .then(response => response.json())
+    .then(experience => {
+      const experienceContainer = document.getElementById('experience');
+      experience.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.setAttribute('class', "col-lg-6");
+        div.setAttribute('data-aos', "fade-up");
+        const innerDiv = document.createElement('div');
+        innerDiv.setAttribute('class', "resume-item")
+        const h3 = document.createElement('h3');
+        h3.setAttribute('class', "resume-title");
+        const h4 = document.createElement('h4');
+        const h5 = document.createElement('h5');
+        const p = document.createElement('p');
+        const ul = document.createElement('ul');
+        h4.innerHTML = item['Designation'];
+        h5.innerHTML = item['Start Year'] + ' - ' + item['End Year'];
+        p.innerHTML = `<em>${item['Company Name'] + ', ' + item['Address']}</em>`;
+        ul.innerHTML = item["Description"];
+        if (index == 0) {
+          h3.innerHTML = "Professional Experience";
         }
-      }
+        else if (index + 1 == Math.ceil(experience.length / 2)) {
+          h3.setAttribute('style', "height: 30px");
+        }
+        innerDiv.append(h4, h5, p, ul);
+        div.append(h3, innerDiv);
+        experienceContainer.appendChild(div);
+      })
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
     });
-  } else {
-    DOM.testimonialsSlider.swiper.update();
+}
+
+function fetchAndRenderTestimony() {
+  fetch('/api/testimonial')
+    .then(response => response.json())
+    .then(testimony => {
+      renderSwiperTestimony(testimony);
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+
+  function renderSwiperTestimony(data) {
+    const swiperContainer = document.querySelector('.testimonials-slider');
+    const swiperWrapper = swiperContainer.querySelector('.swiper-wrapper');
+    swiperWrapper.innerHTML = '';
+
+    data.forEach(item => {
+      const div = document.createElement('div');
+      const innerDiv = document.createElement('div');
+      const h3 = document.createElement('h3');
+      const h4 = document.createElement('h4');
+      const p = document.createElement('p');
+      p.innerHTML = `<i class="bx bxs-quote-alt-left quote-icon-left"></i>
+        ${item['Message']}
+        <i class="bx bxs-quote-alt-right quote-icon-right"></i>`;
+      h3.innerHTML = item['Name'];
+      if (item['Company']) {
+        h4.innerHTML = item['Designation'] + ' , ' + item['Company'];
+      }
+      else {
+        h4.innerHTML = item['Designation'];
+      }
+      innerDiv.setAttribute('class', 'testimonial-item');
+      innerDiv.setAttribute('data-aos', 'fade-up');
+      innerDiv.append(p, h3, h4);
+      div.setAttribute('class', 'swiper-slide');
+      div.appendChild(innerDiv);
+      swiperWrapper.appendChild(div);
+    });
+
+    // Initialize Swiper if it's not initialized yet
+    if (!swiperContainer.swiper) {
+      swiperContainer.swiper = new Swiper('.testimonials-slider', {
+        speed: 600,
+        loop: true,
+        autoplay: {
+          delay: 5000,
+          disableOnInteraction: false
+        },
+        slidesPerView: 'auto',
+        pagination: {
+          el: '.swiper-pagination',
+          type: 'bullets',
+          clickable: true
+        },
+        breakpoints: {
+          320: {
+            slidesPerView: 1,
+            spaceBetween: 20
+          },
+
+          1200: {
+            slidesPerView: 3,
+            spaceBetween: 20
+          }
+        }
+      });
+    } else {
+      // Update Swiper if it's already initialized
+      swiperContainer.swiper.update();
+    }
   }
 }
 
-// Debounced form submission
-const debouncedSubmit = debounce(async (msgType) => {
-  try {
-    // Disable the submit button
-    DOM.submitButton.disabled = true;
-    DOM.submitButton.textContent = 'Sending...';
-
-    const formData = {
-      Name: DOM.nameInput.value,
-      Email: DOM.emailInput.value,
-      Company: DOM.companyInput.value,
-      Designation: DOM.designationInput.value,
-      Message: DOM.messageInput.value
-    };
-    
-    const response = await fetch('/api/' + msgType, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(formData)
+function sendMessageOrContact(msgType) {
+  const formData = {
+    Name: document.getElementById('name').value,
+    Email: document.getElementById('email').value,
+    Company: document.getElementById('company').value,
+    Designation: document.getElementById('designation').value,
+    Message: document.getElementsByName('message')[0].value
+  };
+  apiUrl = '/api/' + msgType;
+  fetch(apiUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(formData)
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log('Message sent:', data);
+      alert(data.Message);
+      document.getElementsByClassName('contact-form')[0].reset();
+    })
+    .catch(error => {
+      console.error('Error sending message:', error);
+      alert('Please fill the form properly and try again.');
     });
-
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-
-    const data = await response.json();
-    console.log('Message sent:', data);
-    alert(data.Message);
-    DOM.contactForm.reset();
-  } catch (error) {
-    console.error('Error sending message:', error);
-    alert('Please fill the form properly and try again.');
-  } finally {
-    // Re-enable the submit button
-    DOM.submitButton.disabled = false;
-    DOM.submitButton.textContent = 'Send It';
-  }
-}, 300);
-
-async function sendMessageOrContact(msgType) {
-  await debouncedSubmit(msgType);
 }
 
 function handleCheckboxSelection() {
-  const checkboxes = DOM.contactForm.querySelectorAll('input[type="checkbox"]');
+  const form = document.getElementsByClassName('contact-form');
+  const checkboxes = form[0].querySelectorAll('input[type="checkbox"]');
   checkboxes.forEach(checkbox => {
     checkbox.addEventListener('change', () => {
+      // Uncheck all other checkboxes when one is checked
       checkboxes.forEach(otherCheckbox => {
         if (otherCheckbox !== checkbox) {
           otherCheckbox.checked = false;
@@ -415,46 +237,42 @@ function handleCheckboxSelection() {
   });
 }
 
-async function fetchAndRenderCerts() {
-  try {
-    const certs = await fetchWithCache('/api/certification');
-    const fragment = document.createDocumentFragment();
-    
-    certs.forEach(item => {
-      const filterDiv = document.createElement('div');
-      filterDiv.className = `col-lg-4 col-md-6 portfolio-item filter-${item['Cert Type'].toLowerCase().replace(' ', '-')}`;
-      
-      const wrapDiv = document.createElement('div');
-      wrapDiv.className = 'portfolio-wrap';
-      
-      const anchor = document.createElement('a');
-      anchor.href = item['Cert Url'];
-      anchor.target = '_blank';
-      
-      const img = new Image();
-      img.dataset.src = "/static/img/certs/" + item['Cert Logo'];
-      img.title = item['Cert Name'];
-      img.className = 'img-fluid lazy-load';
-      
-      lazyLoadObserver.observe(img);
-      anchor.appendChild(img);
-      wrapDiv.appendChild(anchor);
-      filterDiv.appendChild(wrapDiv);
-      fragment.appendChild(filterDiv);
+function fetchAndRenderCerts() {
+  fetch('/api/certification')
+    .then(response => response.json())
+    .then(certs => {
+      const dataContainer = document.getElementsByClassName('portfolio-container')[0];
+      certs.forEach(item => {
+        const filter_div = document.createElement('div');
+        const wrap_div = document.createElement('div');
+        const anchor = document.createElement('a');
+        const img = document.createElement('img');
+        img.setAttribute('src', "/static/img/certs/" + `${item['Cert Logo']}`);
+        img.setAttribute('title', `${item['Cert Name']}`);
+        img.setAttribute('class', 'img-fluid');
+        anchor.setAttribute('href', `${item['Cert Url']}`);
+        anchor.setAttribute('target', '_blank');
+        anchor.appendChild(img);
+        wrap_div.appendChild(anchor);
+        wrap_div.setAttribute('class', 'portfolio-wrap');
+        filter_div.setAttribute('class', 'col-lg-4 col-md-6 portfolio-item filter-' + `${item['Cert Type']}`.toLowerCase().replace(' ', '-'));
+        filter_div.appendChild(wrap_div);
+        dataContainer.appendChild(filter_div);
+      })
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
     });
-    
-    DOM.portfolioContainer.appendChild(fragment);
-  } catch (error) {
-    console.error('Error fetching certification data:', error);
-  }
 }
 
-// Optimized form submission handler
-DOM.contactForm.addEventListener('submit', async function(event) {
-  event.preventDefault();
+document.getElementsByClassName('contact-form')[0].addEventListener('submit', function(event) {
+  event.preventDefault(); // Prevent default form submission
+  var messageType;
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-  const messageType = Array.from(checkboxes).find(checkbox => checkbox.checked)?.value;
-  if (messageType) {
-    await sendMessageOrContact(messageType);
-  }
+  checkboxes.forEach(checkbox => {
+    if (checkbox.checked) {
+      messageType = checkbox.value;
+    }
+  });
+  sendMessageOrContact(messageType);
 });
