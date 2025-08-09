@@ -2,7 +2,7 @@
 from flask import request, jsonify
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
-from flask_smorest import abort, Blueprint
+from flask_smorest import Blueprint
 from datetime import datetime
 from app.utilities.utils import *
 from app.models.about import About
