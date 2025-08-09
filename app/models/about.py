@@ -30,3 +30,67 @@ class About(db.Model):
 
     def __repr__(self):
         return f"<About {self.email}>"
+
+    @classmethod
+    def filter_by_email(cls, email):
+        """
+        Filter records by email.
+        :param email: Email to filter by
+        :return: The About instance if found, else None.
+        """
+        return cls.query.filter_by(email=email).first()
+
+    @classmethod
+    def fetch_first_record(cls):
+        """
+        Get the first record from the About table.
+        :return: The first About instance if found, else None.
+        """
+        return cls.query.first()
+
+    @classmethod
+    def fetch_first_record_dict(cls):
+        """
+        Get the first record from the About table as a dictionary.
+        :return: Dictionary representation of the first About instance if found, else None.
+        """
+        first_record = cls.query.first()
+        return first_record.to_dict() if first_record else None
+
+    def save(self):
+        """
+        Save the current instance to database.
+        """
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except:
+            db.session.rollback()
+
+    def delete(self):
+        """
+        Delete the current instance from database.
+        """
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except:
+            db.session.rollback()
+
+    def to_dict(self):
+        """
+        Convert the current instance to a dictionary.
+        """
+        return {
+            "Email": self.email,
+            "City": self.city,
+            "Current Company": self.current_company,
+            "Current Designation": self.current_designation,
+            "Degree": self.degree,
+            "Description": self.description,
+            "Phone": self.phone,
+            "Self Facts": self.self_facts,
+            "Short Description": self.short_description,
+            "Summary": self.summary,
+            "Website": self.website
+        }

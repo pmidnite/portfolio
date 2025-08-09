@@ -1,6 +1,5 @@
 # __init__.py
 from flask import Flask, render_template
-from flask_pymongo import PyMongo
 from flask_jwt_extended import JWTManager
 from .config import Config
 from app.models import about, contact, educations,\
