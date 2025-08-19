@@ -12,6 +12,15 @@ class Skills(db.Model):
     skill_name = db.Column(db.String(120), unique=True, nullable=False)
     skill_logo = db.Column(db.String(300), nullable=False)
 
+    def __repr__(self):
+        return f"<Skill {self.skill_name}>"
+
+    def to_dict(self):
+        return {
+            "skill_name": self.skill_name,
+            "skill_logo": self.skill_logo
+        }
+
 
 class MappedSkills(db.Model):
     '''
@@ -23,3 +32,12 @@ class MappedSkills(db.Model):
     about_id = db.Column(db.ForeignKey(About.id))
     skill_id = db.Column(db.ForeignKey(Skills.id))
     __table_args__ = (db.UniqueConstraint(about_id, skill_id, name="about_skill_uk"),)
+
+    def __repr__(self):
+        return f"<MappedSkills about_id={self.about_id}, skill_id={self.skill_id}>"
+
+    def to_dict(self):
+        return {
+            "about_id": self.about_id,
+            "skill_id": self.skill_id
+        }

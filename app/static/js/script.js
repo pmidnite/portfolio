@@ -265,7 +265,7 @@ function fetchAndRenderCerts() {
     });
 }
 
-document.getElementsByClassName('contact-form')[0].addEventListener('submit', function(event) {
+document.getElementsByClassName('contact-form')[0].addEventListener('submit', function (event) {
   event.preventDefault(); // Prevent default form submission
   var messageType;
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');

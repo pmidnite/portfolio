@@ -18,5 +18,18 @@ class Education(db.Model):
     university = db.Column(db.String(1000), nullable=False)
     updated_date = db.Column(db.DateTime(timezone=True), default=func.now(), nullable=False)
     email = db.Column(db.ForeignKey(About.email), nullable=False)
-    
+
     __table_args__ = (db.UniqueConstraint(email, start_year, name="email_start_yr_uk"),)
+
+    def __repr__(self):
+        return f"<Education {self.degree} at {self.university}>"
+
+    def to_dict(self):
+        return {
+            "Start Year": self.start_year,
+            "Address": self.address,
+            "Degree": self.degree,
+            "Passing Year": self.passing_year,
+            "University": self.university,
+            "Email": self.email
+        }

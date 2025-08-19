@@ -17,5 +17,19 @@ class Experiences(db.Model):
     designation = db.Column(db.String(200), nullable=False)
     end_year = db.Column(db.String(7), nullable=False)
     email = db.Column(db.ForeignKey(About.email), nullable=False)
-    
+
     # __table_args__ = (db.UniqueConstraint(email, start_year, name="email_start_yr_uk"),)
+
+    def __repr__(self):
+        return f"<Experience {self.designation} at {self.company_name}>"
+
+    def to_dict(self):
+        return {
+            "start_year": self.start_year,
+            "address": self.address,
+            "company_name": self.company_name,
+            "description": self.description,
+            "designation": self.designation,
+            "end_year": self.end_year,
+            "email": self.email
+        }

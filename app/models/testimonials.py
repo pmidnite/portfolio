@@ -13,3 +13,16 @@ class Testimonials(db.Model):
     designation = db.Column(db.String(200), nullable=False)
     message = db.Column(db.String(1000), nullable=False)
     reviewed = db.Column(db.String(1), nullable=False)
+
+    def __repr__(self):
+        return f"<Testimonial {self.name}>"
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "email": self.email,
+            "company": self.company,
+            "designation": self.designation,
+            "message": self.message,
+            "reviewed": self.reviewed
+        }

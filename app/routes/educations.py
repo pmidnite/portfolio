@@ -1,13 +1,32 @@
 # Routes for educations.py
 from flask import Blueprint, request, jsonify
+from flask.views import MethodView
 from flask_jwt_extended import jwt_required
+from flask_smorest import Blueprint
 from datetime import datetime
 from bson import json_util
 from app.utilities.utils import *
 from app.models.educations import Education
 from app.models.about import About
 
-bp = Blueprint("education", __name__, url_prefix="/api/education")
+bp = Blueprint("education", __name__, description='Education Implementation Logic', url_prefix="/api")
+
+
+@bp.route('/education')
+class EducationView(MethodView):
+    def get(self):
+        educations = Education.query.order_by(Education.start_year.desc()).all()
+        if educations:
+            return json_util.dumps(map_class_to_dict(education) for education in educations)
+        return jsonify({"Message": "No data exists."})
+
+    @jwt_required()
+    def post(self):
+        return insert_or_update_education()
+
+    @jwt_required()
+    def delete(self):
+        return delete_education()
 
 @bp.route("", methods=["GET"])
 def fetch_education():
