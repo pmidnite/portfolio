@@ -143,7 +143,7 @@ class PortfolioLogger:
             logging.Logger: Configured logger instance
         """
         if name is None:
-            name = 'portfolio'
+            name = 'app'
 
         if name not in cls._loggers:
             logger = logging.getLogger(name)

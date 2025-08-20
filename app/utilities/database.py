@@ -2,7 +2,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from app.utilities.logger import get_logger
 
-logger = get_logger(__name__.split('.')[0])
+logger = get_logger()
 
 class Base(DeclarativeBase):
   pass

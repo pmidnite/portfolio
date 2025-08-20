@@ -2,7 +2,7 @@ from flask import jsonify
 from typing import Any, Dict, List, Optional, Union
 from app.utilities.logger import get_logger, log_error, log_warning
 
-logger = get_logger(__name__)
+logger = get_logger()
 
 
 class APIResponse:
