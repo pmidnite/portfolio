@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from bson import json_util
 from datetime import datetime
 from app.utilities.utils import *
 from flask_mail import Message
@@ -20,7 +19,7 @@ def fetch_testimonials():
     except:
         testimonials = Testimonials.query.filter_by(reviewed='Y').all()
     if testimonials:
-        return json_util.dumps(map_class_to_dict(testimony) for testimony in testimonials)
+        return jsonify(map_class_to_dict(testimony) for testimony in testimonials)
     else:
         return jsonify({"Message": "No Reviewed Testimony found."})
 
@@ -29,7 +28,7 @@ def fetch_testimonials():
 def fetch_all_testimonials():
     testimonials = Testimonials.query.all()
     if testimonials:
-        return json_util.dumps(map_class_to_dict_all(testimony) for testimony in testimonials)
+        return jsonify(map_class_to_dict_all(testimony) for testimony in testimonials)
     else:
         return jsonify({"Message": "No Testimony found."})
 

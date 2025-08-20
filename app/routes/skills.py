@@ -2,7 +2,6 @@
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from bson import json_util
 from datetime import datetime
 from app.utilities.utils import *
 from app.models.about import About
@@ -14,7 +13,7 @@ bp = Blueprint("skill", __name__, url_prefix="/api/skill")
 def fetch_skill():
     skills = Skills.query.all()
     if skills:
-        return json_util.dumps(map_class_to_dict(skill) for skill in skills)
+        return jsonify(map_class_to_dict(skill) for skill in skills)
     return jsonify({"Message": "No skill exist currently."})
 
 @bp.route("", methods=["POST", "PATCH"])
@@ -91,7 +90,7 @@ def insert_or_update_mapped_skill():
 @bp.route("/mapping", methods=["GET"])
 def fetch_mapped_skill():
     mapped_skills = MappedSkills.query.all()
-    return json_util.dumps(map_class_to_dict(mapped_skill) for mapped_skill in mapped_skills)
+    return jsonify(map_class_to_dict(mapped_skill) for mapped_skill in mapped_skills)
 
 
 @bp.route("/mapping/exact", methods=["GET"])
@@ -102,7 +101,7 @@ def fetch_exact_mapped_skill():
     exact_skills = []
     for skill in mapped_skills:
         exact_skills.append(Skills.query.filter_by(id=skill.skill_id).first())
-    return json_util.dumps(map_class_to_dict(mapped_skill) for mapped_skill in exact_skills)
+    return jsonify(map_class_to_dict(mapped_skill) for mapped_skill in exact_skills)
 
 @bp.route("/mapping", methods=["DELETE"])
 @jwt_required()

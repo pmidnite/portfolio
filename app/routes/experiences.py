@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required
-from bson import json_util
 from datetime import datetime
 from app.utilities.utils import *
 from app.models.experiences import Experiences
@@ -16,7 +15,7 @@ def fetch_experiences():
     except:
         experiences = Experiences.query.order_by(Experiences.start_year.desc()).all()
     if experiences:
-        return json_util.dumps(map_class_to_dict(experience) for experience in experiences)
+        return jsonify(map_class_to_dict(experience) for experience in experiences)
     return jsonify({"Message": "No experience exist currently."})
 
 
