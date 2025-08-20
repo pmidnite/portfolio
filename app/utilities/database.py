@@ -1,5 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
+from app.utilities.logger import get_logger
+
+logger = get_logger(__name__.split('.')[0])
 
 class Base(DeclarativeBase):
   pass
@@ -7,7 +10,15 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 
 def create_database(app):
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
-    print(' * DB Exists!!!')
+    try:
+        db.init_app(app)
+        logger.info("Database initialization started")
+
+        with app.app_context():
+            db.create_all()
+
+        logger.info("Database tables created successfully")
+
+    except Exception as e:
+        logger.error({"error": str(e), "error_type": type(e).__name__})
+        raise
