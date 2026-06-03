@@ -6,6 +6,7 @@ from flask_jwt_extended import jwt_required
 from datetime import datetime
 from flask_mail import Message
 
+from app import limiter
 from app.config import Config
 from app.utilities.response import APIResponse
 from app.utilities.mail_config import mail, send_email_async
@@ -20,12 +21,12 @@ bp = Blueprint("contact", __name__, description="Contact Implementation Logic", 
 
 @bp.route('/contact')
 class ContactView(MethodView):
+    @jwt_required()
     def get(self):
         contacts = Contact.fetch_all_records_dict()
-        if contacts:
-            return APIResponse.success(data=contacts)
-        return APIResponse.not_found("No contact messages exist.")
+        return APIResponse.success(data=contacts if contacts else [])
 
+    @limiter.limit("3 per minute; 10 per hour")
     def post(self):
         try:
             contact_payload = request.get_json(silent=True)
@@ -37,6 +38,12 @@ class ContactView(MethodView):
                 errors = validator.get_errors()
                 error_msg = "; ".join([f"{f}: {', '.join(errs)}" for f, errs in errors.items()])
                 return APIResponse.error(error_msg, status_code=400)
+
+            # Sanitize inputs to prevent HTML/script injection
+            import html
+            for field in ['Name', 'Email', 'Company', 'Designation', 'Message']:
+                if field in contact_payload and isinstance(contact_payload[field], str):
+                    contact_payload[field] = html.escape(contact_payload[field])
 
             is_already_contacted = Contact.fetch_all_records_dict(email=contact_payload.get('Email'))
             current_datetime = datetime.now()
@@ -118,14 +125,29 @@ class ContactView(MethodView):
             if not del_payload:
                 return APIResponse.error("Request body is required.", status_code=400)
 
-            is_contact_exist = Contact.fetch_all_records(email=del_payload.get('Email'), asc=True)
+            email = del_payload.get('Email')
+            contact_date_str = del_payload.get('Contact Date')
+
+            if email and contact_date_str:
+                import datetime
+                try:
+                    contact_date = datetime.datetime.fromisoformat(contact_date_str)
+                    contact = Contact.query.filter_by(email=email, contact_date=contact_date).first()
+                    if contact:
+                        contact.delete()
+                        logger.info(f"Contact message deleted for: {email} ({contact_date_str})")
+                        return APIResponse.deleted(f"Deleted message from {contact.name} successfully.")
+                except Exception as ex:
+                    logger.error(f"Error deleting contact using date: {str(ex)}")
+
+            is_contact_exist = Contact.fetch_all_records(email=email, asc=True)
             if is_contact_exist:
                 first_contact = is_contact_exist[0]
                 first_contact.delete()
                 logger.info(f"Contact message deleted for: {first_contact.name}")
                 return APIResponse.deleted(f"Deleted message from {first_contact.name} successfully.")
             return APIResponse.not_found(
-                f"No message exists from email: {del_payload.get('Email')}"
+                f"No message exists from email: {email}"
             )
         except Exception as e:
             logger.error(f"Error deleting contact record: {str(e)}")

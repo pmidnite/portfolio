@@ -176,7 +176,7 @@ function fetchAndRenderExperience() {
         if (index == 0) {
           h3.innerHTML = "Product Contributions &amp; Experience";
         }
-        else if (index + 1 == Math.ceil(experiences.length / 2)) {
+        else if (index == 1) {
           h3.innerHTML = "&nbsp;";
           h3.setAttribute('style', "height: 30px");
         }

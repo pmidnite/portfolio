@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Admin Dashboard — Portfolio Control Panel</title>
+  
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,500,600|Raleway:400,500,600|Poppins:400,500,600" rel="stylesheet">
+  
+  <!-- Vendor CSS Files -->
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/boxicons/css/boxicons.min.css') }}" rel="stylesheet">
+  
+  <!-- Inline Dark/Light Mode Theme Flash Prevention -->
+  <script>
+    (function () {
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    })();
+  </script>
+
+  <link href="{{ url_for('static', filename='css/admin.css') }}" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Login Overlay -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <div class="text-center mb-4">
+        <h2 style="font-size: 2rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Admin Access</h2>
+        <p class="text-muted" style="font-size: 0.9rem;">Sign in to manage your portfolio</p>
+      </div>
+      <form id="loginForm">
+        <div class="mb-3">
+          <label for="username">Username</label>
+          <input type="text" id="username" class="form-control" placeholder="Enter admin username" required>
+        </div>
+        <div class="mb-4">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="Enter admin password" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100 py-3" id="btnLogin">
+          <span id="loginText">Sign In</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="sidebar">
+    <div class="profile-section">
+      <div class="d-flex justify-content-between align-items-center mobile-header d-lg-none mb-3">
+        <span class="fw-bold">Navigation</span>
+        <button class="btn btn-close btn-close-white" onclick="toggleMobileSidebar()"></button>
+      </div>
+      <h3 class="profile-title">Sarfaraz Admin</h3>
+      <p class="profile-subtitle">Portfolio Control Panel</p>
+    </div>
+    
+    <ul class="admin-nav">
+      <li><button class="nav-item-btn active" onclick="switchTab('tab-dashboard', this)"><i class="bi bi-grid-fill"></i>Dashboard</button></li>
+      <li><button class="nav-item-btn" onclick="switchTab('tab-profile', this)"><i class="bi bi-person-fill"></i>Profile/About</button></li>
+      <li><button class="nav-item-btn" onclick="switchTab('tab-experience', this)"><i class="bi bi-briefcase-fill"></i>Experience</button></li>
+      <li><button class="nav-item-btn" onclick="switchTab('tab-education', this)"><i class="bi bi-mortarboard-fill"></i>Education</button></li>
+      <li><button class="nav-item-btn" onclick="switchTab('tab-skills', this)"><i class="bi bi-award-fill"></i>Skills & Certs</button></li>
+      <li><button class="nav-item-btn" onclick="switchTab('tab-testimonials', this)"><i class="bi bi-chat-left-quote-fill"></i>Testimonials</button></li>
+      <li><button class="nav-item-btn" onclick="switchTab('tab-messages', this)"><i class="bi bi-envelope-fill"></i>Messages</button></li>
+      <li><button class="nav-item-btn mt-4 text-danger" onclick="logout()"><i class="bi bi-box-arrow-right"></i>Logout</button></li>
+    </ul>
+
+    <!-- Theme Switcher -->
+    <div class="theme-toggle-container">
+      <span class="theme-label">Switch Theme</span>
+      <button class="btn-toggle-theme" onclick="toggleTheme()" aria-label="Toggle Theme">
+        <i class="bi bi-sun-fill" id="themeIcon"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Body -->
+  <main class="admin-main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <button class="mobile-toggle" onclick="toggleMobileSidebar()"><i class="bi bi-list"></i> Menu</button>
+      <h2 id="currentTabTitle">Dashboard</h2>
+      <div>
+        <a href="/" target="_blank" class="btn btn-secondary btn-sm"><i class="bi bi-eye"></i> View Site</a>
+      </div>
+    </div>
+
+    <!-- TAB: Dashboard -->
+    <div class="admin-tab-content" id="tab-dashboard">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-envelope"></i></div>
+            <div>
+              <div class="stat-number" id="stat-messages">0</div>
+              <div class="stat-label">Messages Received</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-chat-quote"></i></div>
+            <div>
+              <div class="stat-number" id="stat-testimonials">0</div>
+              <div class="stat-label">Testimonials (Approved)</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-award"></i></div>
+            <div>
+              <div class="stat-number" id="stat-skills">0</div>
+              <div class="stat-label">Total Skills</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Profile / About -->
+    <div class="admin-tab-content d-none" id="tab-profile">
+      <div class="dashboard-panel">
+        <h4 class="mb-4">Edit Profile / About Information</h4>
+        <form id="profileForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="prof-email">Email (Read Only)</label>
+              <input type="email" id="prof-email" class="form-control" readonly>
+            </div>
+            <div class="col-md-6">
+              <label for="prof-designation">Current Designation</label>
+              <input type="text" id="prof-designation" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label for="prof-company">Current Company</label>
+              <input type="text" id="prof-company" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label for="prof-phone">Phone</label>
+              <input type="text" id="prof-phone" class="form-control" required>
+            </div>
+            <div class="col-md-6">
+              <label for="prof-degree">Degree</label>
+              <input type="text" id="prof-degree" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label for="prof-city">City / Location</label>
+              <input type="text" id="prof-city" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label for="prof-website">Website URL</label>
+              <input type="text" id="prof-website" class="form-control">
+            </div>
+            <div class="col-md-6">
+              <label for="prof-short-desc">Short Description (Sub-hero)</label>
+              <input type="text" id="prof-short-desc" class="form-control">
+            </div>
+            <div class="col-12">
+              <label for="prof-summary">Resume Summary Statement</label>
+              <textarea id="prof-summary" rows="2" class="form-control"></textarea>
+            </div>
+            <div class="col-12">
+              <label for="prof-facts">Self Facts (comma-separated or text)</label>
+              <textarea id="prof-facts" rows="2" class="form-control"></textarea>
+            </div>
+            <div class="col-12">
+              <label for="prof-desc">Biography Description</label>
+              <textarea id="prof-desc" rows="4" class="form-control"></textarea>
+            </div>
+            <div class="col-12 mt-4 text-end">
+              <button type="submit" class="btn btn-primary" id="btnSaveProfile">Save Profile</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TAB: Experience Manager -->
+    <div class="admin-tab-content d-none" id="tab-experience">
+      <div class="dashboard-panel">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4>Manage Contributions & Experience</h4>
+          <button class="btn btn-primary btn-sm" onclick="showAddExperienceModal()"><i class="bi bi-plus-circle"></i> Add Experience</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Company</th>
+                <th>Duration</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="experience-list">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Education Manager -->
+    <div class="admin-tab-content d-none" id="tab-education">
+      <div class="dashboard-panel">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h4>Manage Education Records</h4>
+          <button class="btn btn-primary btn-sm" onclick="showAddEducationModal()"><i class="bi bi-plus-circle"></i> Add Education</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Degree</th>
+                <th>Institution</th>
+                <th>Duration</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="education-list">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Skills & Certifications -->
+    <div class="admin-tab-content d-none" id="tab-skills">
+      <div class="row g-4">
+        <!-- Skills Column -->
+        <div class="col-md-6">
+          <div class="dashboard-panel">
+            <h4 class="mb-4" id="skillFormTitle">Add a New Skill Map</h4>
+            <form id="skillForm" class="mb-4">
+              <input type="hidden" id="skill-id">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label for="skill-name">Skill Name</label>
+                  <input type="text" id="skill-name" class="form-control" placeholder="e.g. Python" required>
+                </div>
+                <div class="col-12">
+                  <label for="skill-logo">Skill Logo class or icon name</label>
+                  <input type="text" id="skill-logo" class="form-control" placeholder="e.g. devicon/icons/python/python-original.svg" required>
+                </div>
+                <div class="col-12 d-flex gap-2 justify-content-end">
+                  <button type="button" id="btnCancelSkillEdit" class="btn btn-secondary w-50 d-none" onclick="event.preventDefault(); cancelSkillEdit()">Cancel</button>
+                  <button type="submit" id="btnSubmitSkill" class="btn btn-primary w-100">Add Skill & Map</button>
+                </div>
+              </div>
+            </form>
+            <h5>Existing Skills</h5>
+            <ul class="list-group list-group-flush" id="skill-list" style="max-height: 400px; overflow-y: auto;">
+              <!-- Rendered dynamically -->
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Certifications Column -->
+        <div class="col-md-6">
+          <div class="dashboard-panel">
+            <h4 class="mb-4" id="certFormTitle">Add a New Certification</h4>
+            <form id="certForm" class="mb-4">
+              <input type="hidden" id="cert-id">
+              <div class="row g-3">
+                <div class="col-12">
+                  <label for="cert-name">Certification Name</label>
+                  <input type="text" id="cert-name" class="form-control" placeholder="e.g. AWS Cloud Practitioner" required>
+                </div>
+                <div class="col-12">
+                  <label for="cert-authority">Issuing Authority</label>
+                  <input type="text" id="cert-authority" class="form-control" placeholder="e.g. Amazon Web Services" required>
+                </div>
+                <div class="col-12">
+                  <label for="cert-type">Category Type</label>
+                  <select id="cert-type" class="form-select" required>
+                    <option value="Programming Language">Programming Language</option>
+                    <option value="Networking">Networking</option>
+                    <option value="Cybersecurity">Cybersecurity</option>
+                    <option value="Cloud & Frameworks">Cloud & Frameworks</option>
+                  </select>
+                </div>
+                <div class="col-12">
+                  <label for="cert-image">Logo Image (from certs folder)</label>
+                  <input type="text" id="cert-image" class="form-control" placeholder="e.g. AWS.png" required>
+                </div>
+                <div class="col-12">
+                  <label for="cert-url">Credential URL (Optional)</label>
+                  <input type="text" id="cert-url" class="form-control" placeholder="https://...">
+                </div>
+                <div class="col-12 d-flex gap-2 justify-content-end">
+                  <button type="button" id="btnCancelCertEdit" class="btn btn-secondary w-50 d-none" onclick="event.preventDefault(); cancelCertEdit()">Cancel</button>
+                  <button type="submit" id="btnSubmitCert" class="btn btn-primary w-100">Add Certificate</button>
+                </div>
+              </div>
+            </form>
+            <h5>Existing Certifications</h5>
+            <ul class="list-group list-group-flush" id="cert-list" style="max-height: 400px; overflow-y: auto;">
+              <!-- Rendered dynamically -->
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Testimonials -->
+    <div class="admin-tab-content d-none" id="tab-testimonials">
+      <div class="dashboard-panel">
+        <h4 class="mb-4">Manage Client Testimonials</h4>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Author</th>
+                <th>Organization</th>
+                <th>Reviewed Status</th>
+                <th>Content Preview</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="testimonial-list">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: Messages -->
+    <div class="admin-tab-content d-none" id="tab-messages">
+      <div class="dashboard-panel">
+        <h4 class="mb-4">Inbox — Contact Forms</h4>
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Sender</th>
+                <th>Details</th>
+                <th>Date</th>
+                <th>Message Content</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="message-list">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Add/Edit Experience Modal Overlay -->
+  <div class="modal fade" id="experienceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);">
+        <div class="modal-header" style="border-bottom-color: var(--border-color);">
+          <h5 class="modal-title" id="expModalTitle">Add New Work Experience</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="experienceForm">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="exp-designation">Designation</label>
+                <input type="text" id="exp-designation" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label for="exp-company">Company Name</label>
+                <input type="text" id="exp-company" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label for="exp-start-year">Start Year (e.g. 2023)</label>
+                <input type="text" id="exp-start-year" class="form-control" required maxlength="4">
+              </div>
+              <div class="col-md-6">
+                <label for="exp-end-year">End Year (e.g. Present / 2025)</label>
+                <input type="text" id="exp-end-year" class="form-control" required maxlength="7">
+              </div>
+              <div class="col-12">
+                <label for="exp-address">Location Address</label>
+                <input type="text" id="exp-address" class="form-control" placeholder="City, Country" required>
+              </div>
+              <div class="col-12">
+                <label for="exp-description">Work Description / Bullet Points (full description paragraph)</label>
+                <textarea id="exp-description" rows="5" class="form-control" placeholder="Describe achievements and products contributed to." required></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer" style="border-top-color: var(--border-color);">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Education Modal Overlay -->
+  <div class="modal fade" id="educationModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary);">
+        <div class="modal-header" style="border-bottom-color: var(--border-color);">
+          <h5 class="modal-title" id="eduModalTitle">Add Education Record</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="educationForm">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label for="edu-degree">Degree / Course</label>
+                <input type="text" id="edu-degree" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label for="edu-institution">Institution / University</label>
+                <input type="text" id="edu-institution" class="form-control" required>
+              </div>
+              <div class="col-md-6">
+                <label for="edu-start-year">Start Year (e.g. 2018)</label>
+                <input type="text" id="edu-start-year" class="form-control" required maxlength="4">
+              </div>
+              <div class="col-md-6">
+                <label for="edu-passing-year">Passing Year (e.g. 2022)</label>
+                <input type="text" id="edu-passing-year" class="form-control" required maxlength="4">
+              </div>
+              <div class="col-12">
+                <label for="edu-address">Location Address</label>
+                <input type="text" id="edu-address" class="form-control" placeholder="City, Country" required>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer" style="border-top-color: var(--border-color);">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Testimonial Modal Overlay -->
+  <div class="modal fade" id="testimonialModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 12px;">
+        <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+          <h5 class="modal-title" id="testModalTitle">Edit Testimonial</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="testimonialEditForm">
+          <input type="hidden" id="test-id">
+          <input type="hidden" id="test-reviewed">
+          <div class="modal-body p-4">
+            <div class="mb-3">
+              <label for="test-name">Author Name</label>
+              <input type="text" id="test-name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="test-email">Email</label>
+              <input type="email" id="test-email" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="test-designation">Designation</label>
+              <input type="text" id="test-designation" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="test-company">Company</label>
+              <input type="text" id="test-company" class="form-control">
+            </div>
+            <div class="mb-3">
+              <label for="test-message">Message</label>
+              <textarea id="test-message" rows="4" class="form-control" required></textarea>
+            </div>
+          </div>
+          <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Read Details Modal Overlay -->
+  <div class="modal fade" id="readModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 12px;">
+        <div class="modal-header" style="border-bottom: 1px solid var(--border-color);">
+          <h5 class="modal-title" id="readModalTitle">Details</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <div id="readModalContent">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid var(--border-color);">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Beautiful Custom Confirmation Modal -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
+      <div class="modal-content" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 16px; box-shadow: var(--card-shadow);">
+        <div class="modal-body text-center p-4">
+          <div class="mb-3 text-danger" style="font-size: 3rem;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <h5 class="modal-title mb-2 fw-bold" id="confirmModalTitle">Are you sure?</h5>
+          <p class="text-muted mb-4" id="confirmModalMessage" style="font-size: 0.95rem;">Do you really want to delete this record? This action cannot be undone.</p>
+          <div class="d-flex gap-2 justify-content-center">
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-danger px-4" id="btnConfirmAction">Yes, Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vendor JS Files -->
+  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+
+  <!-- Dashboard JavaScript Logic -->
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+</body>
+</html>

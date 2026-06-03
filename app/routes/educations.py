@@ -19,9 +19,7 @@ bp = Blueprint("education", __name__, description='Education Implementation Logi
 class EducationView(MethodView):
     def get(self):
         educations = Education.query.order_by(Education.start_year.desc()).all()
-        if educations:
-            return APIResponse.success(data=[edu.to_dict() for edu in educations])
-        return APIResponse.not_found("No education data exists.")
+        return APIResponse.success(data=[edu.to_dict() for edu in educations] if educations else [])
 
     @jwt_required()
     def post(self):
@@ -77,14 +75,16 @@ class EducationView(MethodView):
             if not del_payload:
                 return APIResponse.error("Request body is required.", status_code=400)
 
-            is_exists = Education.query.filter_by(email=del_payload.get('Email'))\
-                .order_by(Education.start_year.asc()).first()
+            is_exists = Education.query.filter_by(
+                email=del_payload.get('Email'),
+                start_year=del_payload.get('Start Year')
+            ).first()
             if is_exists:
                 is_exists.delete()
-                logger.info(f"Education record deleted for email: {del_payload.get('Email')}")
+                logger.info(f"Education record deleted for: {del_payload.get('Email')} ({del_payload.get('Start Year')})")
                 return APIResponse.deleted(f"Education record deleted successfully.")
             return APIResponse.not_found(
-                f"No education exists for email: '{del_payload.get('Email')}'."
+                f"No education exists for email: '{del_payload.get('Email')}' with start year '{del_payload.get('Start Year')}'."
             )
         except Exception as e:
             logger.error(f"Error deleting education record: {str(e)}")

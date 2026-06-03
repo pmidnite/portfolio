@@ -18,9 +18,7 @@ bp = Blueprint("skill", __name__, description='Skill Implementation Logic', url_
 @bp.route("", methods=["GET"])
 def fetch_skill():
     skills = Skills.query.all()
-    if skills:
-        return APIResponse.success(data=[skill.to_dict() for skill in skills])
-    return APIResponse.not_found("No skills exist currently.")
+    return APIResponse.success(data=[skill.to_dict() for skill in skills] if skills else [])
 
 
 @bp.route("", methods=["POST", "PATCH"])
