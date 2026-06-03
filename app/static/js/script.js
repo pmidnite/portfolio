@@ -419,6 +419,9 @@ function fetchAndRenderCerts() {
     .then(res => {
       const certs = res.data || [];
       const dataContainer = document.getElementsByClassName('portfolio-container')[0];
+      if (!dataContainer) return;
+
+      dataContainer.innerHTML = ''; // clear first
       certs.forEach(item => {
         const filter_div = document.createElement('div');
         const wrap_div = document.createElement('div');
@@ -436,11 +439,60 @@ function fetchAndRenderCerts() {
         filter_div.appendChild(wrap_div);
         dataContainer.appendChild(filter_div);
       });
+
+      // Initialize Isotope after items are added to the DOM and images are loaded
+      if (typeof Isotope !== 'undefined') {
+        let imagesLoadedCount = 0;
+        const totalImages = certs.length;
+
+        const initIso = () => {
+          const portfolioIsotope = new Isotope(dataContainer, {
+            itemSelector: '.portfolio-item',
+            layoutMode: 'fitRows'
+          });
+
+          const portfolioFilters = document.querySelectorAll('#portfolio-flters li');
+          portfolioFilters.forEach(el => {
+            el.addEventListener('click', function(e) {
+              e.preventDefault();
+              portfolioFilters.forEach(li => li.classList.remove('filter-active'));
+              this.classList.add('filter-active');
+              portfolioIsotope.arrange({
+                filter: this.getAttribute('data-filter')
+              });
+              if (typeof AOS !== 'undefined') {
+                AOS.refresh();
+              }
+            });
+          });
+        };
+
+        if (totalImages === 0) {
+          initIso();
+        } else {
+          const checkImages = () => {
+            imagesLoadedCount++;
+            if (imagesLoadedCount === totalImages) {
+              initIso();
+            }
+          };
+
+          dataContainer.querySelectorAll('img').forEach(img => {
+            if (img.complete) {
+              checkImages();
+            } else {
+              img.addEventListener('load', checkImages);
+              img.addEventListener('error', checkImages); // handle broken images
+            }
+          });
+        }
+      }
     })
     .catch(error => {
       console.error('Error fetching certifications:', error);
     });
 }
+
 
 document.getElementsByClassName('contact-form')[0].addEventListener('submit', function (event) {
   event.preventDefault(); // Prevent default form submission
