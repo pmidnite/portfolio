@@ -17,9 +17,7 @@ bp = Blueprint('certification', __name__, description='Certification Implementat
 class CertificationView(MethodView):
     def get(self):
         certs = Certification.fetch_all_records_dict()
-        if certs:
-            return APIResponse.success(data=certs)
-        return APIResponse.not_found("No certifications exist.")
+        return APIResponse.success(data=certs if certs else [])
 
     @jwt_required()
     def post(self):

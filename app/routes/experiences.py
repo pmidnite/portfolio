@@ -29,9 +29,7 @@ def fetch_experiences():
         logger.error(f"Error fetching experiences: {str(e)}")
         return APIResponse.server_error("An error occurred while fetching experiences.")
 
-    if experiences:
-        return APIResponse.success(data=[exp.to_dict() for exp in experiences])
-    return APIResponse.not_found("No experience records exist.")
+    return APIResponse.success(data=[exp.to_dict() for exp in experiences] if experiences else [])
 
 
 @bp.route('', methods=["POST", "PATCH"])

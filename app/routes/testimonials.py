@@ -4,6 +4,7 @@ from flask_jwt_extended import jwt_required
 from flask_smorest import Blueprint
 from flask_mail import Message
 
+from app import limiter
 from app.config import Config
 from app.utilities.response import APIResponse
 from app.utilities.mail_config import mail, send_email_async
@@ -31,21 +32,18 @@ def fetch_testimonials():
         logger.error(f"Error fetching testimonials: {str(e)}")
         return APIResponse.server_error("An error occurred while fetching testimonials.")
 
-    if testimonials:
-        return APIResponse.success(data=[t.to_dict() for t in testimonials])
-    return APIResponse.not_found("No reviewed testimonials found.")
+    return APIResponse.success(data=[t.to_dict() for t in testimonials] if testimonials else [])
 
 
 @bp.route('/all', methods=["GET"])
 @jwt_required()
 def fetch_all_testimonials():
     testimonials = Testimonials.query.all()
-    if testimonials:
-        return APIResponse.success(data=[t.to_dict() for t in testimonials])
-    return APIResponse.not_found("No testimonials found.")
+    return APIResponse.success(data=[t.to_dict() for t in testimonials] if testimonials else [])
 
 
 @bp.route('', methods=["POST", "PATCH"])
+@limiter.limit("3 per minute; 10 per hour")
 def insert_or_update_testimonial():
     try:
         testimonial_payload = request.get_json(silent=True)
@@ -58,13 +56,19 @@ def insert_or_update_testimonial():
             error_msg = "; ".join([f"{f}: {', '.join(errs)}" for f, errs in errors.items()])
             return APIResponse.error(error_msg, status_code=400)
 
+        # Sanitize inputs to prevent HTML/script injection
+        import html
+        for field in ['Name', 'Email', 'Company', 'Designation', 'Message']:
+            if field in testimonial_payload and isinstance(testimonial_payload[field], str):
+                testimonial_payload[field] = html.escape(testimonial_payload[field])
+
         unavailable_column = []
         testimony = Testimonials.query.filter_by(email=testimonial_payload.get("Email")).all()
-
-        # New testimonials always start as unreviewed (False)
-        testimonial_payload.update({"Reviewed": False})
-
         final_obj = testimony[0] if testimony else Testimonials()
+
+        # Only set Reviewed to False for new submissions
+        if not final_obj.id:
+            testimonial_payload.update({"Reviewed": False})
 
         for key, value in testimonial_payload.items():
             attr = key.lower().replace(' ', '_')
@@ -137,20 +141,20 @@ def delete_testimonial():
             return APIResponse.error("Request body is required.", status_code=400)
 
         is_testimony_exists = Testimonials.query.filter_by(
-            name=del_payload.get("Name"),
             email=del_payload.get("Email")
         ).first()
 
         if is_testimony_exists:
+            name = is_testimony_exists.name
             is_testimony_exists.delete()
             logger.info(
-                f"Testimonial deleted for {del_payload.get('Name')} ({del_payload.get('Email')})"
+                f"Testimonial deleted for {del_payload.get('Email')}"
             )
             return APIResponse.deleted(
-                f"Testimonial from {del_payload.get('Name')} deleted successfully."
+                f"Testimonial from {name} deleted successfully."
             )
         return APIResponse.not_found(
-            f"Testimonial from {del_payload.get('Name')} ({del_payload.get('Email')}) does not exist."
+            f"Testimonial from {del_payload.get('Email')} does not exist."
         )
     except Exception as e:
         logger.error(f"Error deleting testimonial: {str(e)}")
