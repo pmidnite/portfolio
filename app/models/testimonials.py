@@ -1,6 +1,8 @@
+from app.models.base import BaseModel
 from app.utilities.database import db
 
-class Testimonials(db.Model):
+
+class Testimonials(BaseModel):
     '''
     Testimony DB Structure Model
     '''
@@ -12,17 +14,17 @@ class Testimonials(db.Model):
     company = db.Column(db.String(150), nullable=True)
     designation = db.Column(db.String(200), nullable=False)
     message = db.Column(db.String(1000), nullable=False)
-    reviewed = db.Column(db.String(1), nullable=False)
+    reviewed = db.Column(db.Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f"<Testimonial {self.name}>"
 
     def to_dict(self):
         return {
-            "name": self.name,
-            "email": self.email,
-            "company": self.company,
-            "designation": self.designation,
-            "message": self.message,
-            "reviewed": self.reviewed
+            "Name": self.name,
+            "Email": self.email,
+            "Company": self.company,
+            "Designation": self.designation,
+            "Message": self.message,
+            "Reviewed": self.reviewed
         }

@@ -1,8 +1,9 @@
+from app.models.base import BaseModel
 from app.utilities.database import db
 from app.models.about import About
 
 
-class Skills(db.Model):
+class Skills(BaseModel):
     '''
     Skill DB Structure Model
     '''
@@ -17,14 +18,14 @@ class Skills(db.Model):
 
     def to_dict(self):
         return {
-            "skill_name": self.skill_name,
-            "skill_logo": self.skill_logo
+            "Skill Name": self.skill_name,
+            "Skill Logo": self.skill_logo
         }
 
 
-class MappedSkills(db.Model):
+class MappedSkills(BaseModel):
     '''
-    Skill DB Structure Model
+    Mapped Skill DB Structure Model
     '''
     __tablename__ = "mapped_skill"
 

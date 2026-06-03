@@ -1,8 +1,9 @@
-from app.utilities.database import db
 from sqlalchemy.sql import func
+from app.models.base import BaseModel
+from app.utilities.database import db
 
 
-class About(db.Model):
+class About(BaseModel):
     '''
     About DB Structure Model
     '''
@@ -57,29 +58,9 @@ class About(db.Model):
         first_record = cls.query.first()
         return first_record.to_dict() if first_record else None
 
-    def save(self):
-        """
-        Save the current instance to database.
-        """
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except:
-            db.session.rollback()
-
-    def delete(self):
-        """
-        Delete the current instance from database.
-        """
-        try:
-            db.session.delete(self)
-            db.session.commit()
-        except:
-            db.session.rollback()
-
     def to_dict(self):
         """
-        Convert the current instance to a dictionary.
+        Convert to a dictionary with UI-friendly Title Case keys.
         """
         return {
             "Email": self.email,

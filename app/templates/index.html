@@ -31,13 +31,17 @@
     <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/bubble.css') }}" rel="stylesheet" />
 
-    <!-- =======================================================
-  * Template Name: iPortfolio
-  * Updated: Mar 13 2024 with Bootstrap v5.3.3
-  * Template URL: https://bootstrapmade.com/iportfolio-bootstrap-portfolio-websites-template/
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
+    <!--
+      Sarfaraz Nawaz - Personal Portfolio
+      Built with Flask, MySQL, AngularJS, and Vanilla CSS
+    -->
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 
+                (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 
 <body>
@@ -64,6 +68,11 @@
                     <a href="https://in.linkedin.com/in/snawaz11" target="_blank" class="linkedin"><i
                             class="bx bxl-linkedin"></i></a>
                 </div>
+                <div class="theme-switch-wrapper mt-3 text-center">
+                    <button id="theme-toggle" class="btn-theme-toggle" title="Toggle Dark/Light Mode">
+                        <i class="bi bi-moon-stars"></i> <span class="theme-toggle-text">Dark Mode</span>
+                    </button>
+                </div>
             </div>
 
             <nav id="navbar" class="nav-menu navbar">
@@ -89,7 +98,7 @@
                             <span>Certifications</span></a>
                     </li>
                     <li>
-                        <a href="#testimonials" class="nav-link scrollto"><i class="bx bx-envelope"></i>
+                        <a href="#testimonials" class="nav-link scrollto"><i class="bx bx-chat"></i>
                             <span>Testimonial</span></a>
                     </li>
                     <li>
@@ -129,6 +138,14 @@
                 <span class="typed"
                     data-typed-items="Software Engineer, Full Stack Developer, Cyber Security Enthusiast"></span>
             </p>
+            <div class="hero-buttons mt-4">
+                <a href="/static/resume/Sarfaraz Resume.pdf" class="btn-cta btn-primary-cta" target="_blank">
+                    <i class="bi bi-file-earmark-pdf"></i> Download CV
+                </a>
+                <a href="#contact" class="btn-cta btn-secondary-cta scrollto">
+                    <i class="bi bi-chat-dots"></i> Let's Talk
+                </a>
+            </div>
         </div>
     </section>
     <!-- End Hero -->
@@ -143,12 +160,9 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-lg-4" data-aos="fade-right">
-                        <img src="{{ url_for('static', filename='img/profile-img.jpg') }}" class="img-fluid" alt="" />
-                    </div>
-                    <div class="col-lg-8 pt-lg-0 content pt-4" data-aos="fade-left">
+                    <div class="col-lg-12 pt-lg-0 content" data-aos="fade-up">
                         <h3 class="current-desig"></h3>
-                        <p class="fst-italic" class="current-company">
+                        <p class="fst-italic current-company">
                         </p>
                         <div class="row">
                             <div class="col-lg-6">
@@ -203,8 +217,48 @@
             <div class="container">
                 <div class="section-title">
                     <h2>Facts</h2>
-                    <p class="current-fact">
-                    </p>
+                    <p class="current-fact"></p>
+                </div>
+
+                <div class="row no-gutters mt-4">
+                    <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch" data-aos="fade-up">
+                        <div class="count-box">
+                            <i class="bi bi-clock"></i>
+                            <span data-purecounter-start="0" data-purecounter-end="7" data-purecounter-duration="1"
+                                class="purecounter">7+</span>
+                            <p><strong>Years Experience</strong> in Full-Stack &amp; ETL</p>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch" data-aos="fade-up"
+                        data-aos-delay="100">
+                        <div class="count-box">
+                            <i class="bi bi-box-seam"></i>
+                            <span data-purecounter-start="0" data-purecounter-end="3" data-purecounter-duration="1"
+                                class="purecounter">3</span>
+                            <p><strong>Enterprise Products</strong> contributed &amp; managed</p>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch" data-aos="fade-up"
+                        data-aos-delay="200">
+                        <div class="count-box">
+                            <i class="bi bi-award"></i>
+                            <span data-purecounter-start="0" data-purecounter-end="5" data-purecounter-duration="1"
+                                class="purecounter">5+</span>
+                            <p><strong>Certifications</strong> in Python &amp; Security</p>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 col-md-6 d-md-flex align-items-md-stretch" data-aos="fade-up"
+                        data-aos-delay="300">
+                        <div class="count-box">
+                            <i class="bi bi-cpu"></i>
+                            <span data-purecounter-start="0" data-purecounter-end="20" data-purecounter-duration="1"
+                                class="purecounter">20+</span>
+                            <p><strong>Tools &amp; Languages</strong> master grid</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -232,9 +286,13 @@
                     <h2>Resume</h2>
                     <p>
                         Explore my comprehensive resume showcasing my working experience with Python, AngularJS, and
-                        full-stack
-                        development. Download it as <a href="/static/resume/Sarfaraz Resume.pdf">pdf</a> here.
+                        full-stack development.
                     </p>
+                    <div class="mt-3">
+                        <a href="/static/resume/Sarfaraz Resume.pdf" class="btn-cv-download" target="_blank">
+                            <i class="bi bi-cloud-arrow-down"></i> Download Full PDF Resume
+                        </a>
+                    </div>
                 </div>
 
                 <div class="row">
@@ -410,219 +468,10 @@
                 </div>
 
                 <div class="row portfolio-container" data-aos="fade-up" data-aos-delay="100">
-                    <!-- <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/certs/introduction-to-cybersecurity.png') }}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/certs/introduction-to-cybersecurity.png') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="App 1"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="https://www.credly.com/badges/bb6b1b22-224e-4eea-9b24-3c1b434c88c1/public_url"
-                                    target="_blank" title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 portfolio-item filter-web">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/certs/networking-basics.png') }}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/certs/networking-basics.png') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="Web 3"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="https://www.credly.com/badges/bc957422-e0ed-4f74-926b-fcdaef319688/public_url"
-                                    title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/certs/python-essentials-1.png') }}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/certs/python-essentials-1.png') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="App 2"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="https://www.credly.com/badges/d7996086-549e-4e28-b84d-d0ca87b302f6/public_url"
-                                    title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 portfolio-item filter-card">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/certs/python-essentials-2.png') }}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/certs/python-essentials-2.png') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="Card 2"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="https://www.credly.com:badges/d5efd900-3ead-492f-9df6-128d85a0d7e3/public_url"
-                                    title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 portfolio-item filter-web">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/portfolio/portfolio-5.jpg') }}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/portfolio/portfolio-5.jpg') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="Web 2"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 portfolio-item filter-app">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/portfolio/portfolio-6.jpg') }}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/portfolio/portfolio-6.jpg') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="App 3"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 portfolio-item filter-card">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/portfolio/portfolio-7.jpg') }}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/portfolio/portfolio-7.jpg') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="Card 1"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 portfolio-item filter-card">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/portfolio/portfolio-8.jpg') }}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/portfolio/portfolio-8.jpg') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="Card 3"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-4 col-md-6 portfolio-item filter-web">
-                        <div class="portfolio-wrap">
-                            <img src="{{ url_for('static', filename='img/portfolio/portfolio-9.jpg' )}}"
-                                class="img-fluid" alt="" />
-                            <div class="portfolio-links">
-                                <a href="{{ url_for('static', filename='img/portfolio/portfolio-9.jpg') }}"
-                                    data-gallery="portfolioGallery" class="portfolio-lightbox" title="Web 3"><i
-                                        class="bx bx-plus"></i></a>
-                                <a href="portfolio-details.html" title="More Details"><i class="bx bx-link"></i></a>
-                            </div>
-                        </div>
-                    </div> -->
                 </div>
             </div>
         </section>
         <!-- End Portfolio Section -->
-
-        <!-- ======= Services Section ======= -->
-        <!-- <section id="services" class="services">
-            <div class="container">
-                <div class="section-title">
-                    <h2>Services</h2>
-                    <p>
-                        Magnam dolores commodi suscipit. Necessitatibus eius
-                        consequatur ex aliquid fuga eum quidem. Sit sint
-                        consectetur velit. Quisquam quos quisquam
-                        cupiditate. Et nemo qui impedit suscipit alias ea.
-                        Quia fugiat sit in iste officiis commodi quidem hic
-                        quas.
-                    </p>
-                </div>
-
-                <div class="row">
-                    <div class="col-lg-4 col-md-6 icon-box" data-aos="fade-up">
-                        <div class="icon">
-                            <i class="bi bi-briefcase"></i>
-                        </div>
-                        <h4 class="title"><a href="">Lorem Ipsum</a></h4>
-                        <p class="description">
-                            Voluptatum deleniti atque corrupti quos dolores
-                            et quas molestias excepturi sint occaecati
-                            cupiditate non provident
-                        </p>
-                    </div>
-                    <div class="col-lg-4 col-md-6 icon-box" data-aos="fade-up" data-aos-delay="100">
-                        <div class="icon">
-                            <i class="bi bi-card-checklist"></i>
-                        </div>
-                        <h4 class="title"><a href="">Dolor Sitema</a></h4>
-                        <p class="description">
-                            Minim veniam, quis nostrud exercitation ullamco
-                            laboris nisi ut aliquip ex ea commodo consequat
-                            tarad limino ata
-                        </p>
-                    </div>
-                    <div class="col-lg-4 col-md-6 icon-box" data-aos="fade-up" data-aos-delay="200">
-                        <div class="icon">
-                            <i class="bi bi-bar-chart"></i>
-                        </div>
-                        <h4 class="title">
-                            <a href="">Sed ut perspiciatis</a>
-                        </h4>
-                        <p class="description">
-                            Duis aute irure dolor in reprehenderit in
-                            voluptate velit esse cillum dolore eu fugiat
-                            nulla pariatur
-                        </p>
-                    </div>
-                    <div class="col-lg-4 col-md-6 icon-box" data-aos="fade-up" data-aos-delay="300">
-                        <div class="icon">
-                            <i class="bi bi-binoculars"></i>
-                        </div>
-                        <h4 class="title"><a href="">Magni Dolores</a></h4>
-                        <p class="description">
-                            Excepteur sint occaecat cupidatat non proident,
-                            sunt in culpa qui officia deserunt mollit anim
-                            id est laborum
-                        </p>
-                    </div>
-                    <div class="col-lg-4 col-md-6 icon-box" data-aos="fade-up" data-aos-delay="400">
-                        <div class="icon">
-                            <i class="bi bi-brightness-high"></i>
-                        </div>
-                        <h4 class="title"><a href="">Nemo Enim</a></h4>
-                        <p class="description">
-                            At vero eos et accusamus et iusto odio
-                            dignissimos ducimus qui blanditiis praesentium
-                            voluptatum deleniti atque
-                        </p>
-                    </div>
-                    <div class="col-lg-4 col-md-6 icon-box" data-aos="fade-up" data-aos-delay="500">
-                        <div class="icon">
-                            <i class="bi bi-calendar4-week"></i>
-                        </div>
-                        <h4 class="title"><a href="">Eiusmod Tempor</a></h4>
-                        <p class="description">
-                            Et harum quidem rerum facilis est et expedita
-                            distinctio. Nam libero tempore, cum soluta nobis
-                            est eligendi
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section> -->
-        <!-- End Services Section -->
 
         <!-- ======= Testimonials Section ======= -->
         <section id="testimonials" class="testimonials section-bg">
@@ -636,102 +485,6 @@
 
                 <div class="testimonials-slider swiper" data-aos="fade-up" data-aos-delay="100">
                     <div class="swiper-wrapper" id="testimonial">
-                        <!-- <div class="swiper-slide">
-                            <div class="testimonial-item" data-aos="fade-up">
-                                <p>
-                                    <i class="bx bxs-quote-alt-left quote-icon-left"></i>
-                                    Proin iaculis purus consequat sem cure
-                                    digni ssim donec porttitora entum
-                                    suscipit rhoncus. Accusantium quam,
-                                    ultricies eget id, aliquam eget nibh et.
-                                    Maecen aliquam, risus at semper.
-                                    <i class="bx bxs-quote-alt-right quote-icon-right"></i>
-                                </p>
-                                <img src="{{ url_for('static', filename='img/testimonials/testimonials-1.jpg') }}"
-                                    class="testimonial-img" alt="" />
-                                <h3>Saul Goodman</h3>
-                                <h4>Ceo &amp; Founder</h4>
-                            </div>
-                        </div> -->
-                        <!-- End testimonial item -->
-
-                        <!-- <div class="swiper-slide">
-                            <div class="testimonial-item" data-aos="fade-up" data-aos-delay="100">
-                                <p>
-                                    <i class="bx bxs-quote-alt-left quote-icon-left"></i>
-                                    Export tempor illum tamen malis malis
-                                    eram quae irure esse labore quem cillum
-                                    quid cillum eram malis quorum velit fore
-                                    eram velit sunt aliqua noster fugiat
-                                    irure amet legam anim culpa.
-                                    <i class="bx bxs-quote-alt-right quote-icon-right"></i>
-                                </p>
-                                <img src="{{ url_for('static', filename='img/testimonials/testimonials-2.jpg') }}"
-                                    class="testimonial-img" alt="" />
-                                <h3>Sara Wilsson</h3>
-                                <h4>Designer</h4>
-                            </div>
-                        </div> -->
-                        <!-- End testimonial item -->
-
-                        <!-- <div class="swiper-slide">
-                            <div class="testimonial-item" data-aos="fade-up" data-aos-delay="200">
-                                <p>
-                                    <i class="bx bxs-quote-alt-left quote-icon-left"></i>
-                                    Enim nisi quem export duis labore cillum
-                                    quae magna enim sint quorum nulla quem
-                                    veniam duis minim tempor labore quem
-                                    eram duis noster aute amet eram fore
-                                    quis sint minim.
-                                    <i class="bx bxs-quote-alt-right quote-icon-right"></i>
-                                </p>
-                                <img src="{{ url_for('static', filename='img/testimonials/testimonials-3.jpg') }}"
-                                    class="testimonial-img" alt="" />
-                                <h3>Jena Karlis</h3>
-                                <h4>Store Owner</h4>
-                            </div>
-                        </div> -->
-                        <!-- End testimonial item -->
-
-                        <!-- <div class="swiper-slide">
-                            <div class="testimonial-item" data-aos="fade-up" data-aos-delay="300">
-                                <p>
-                                    <i class="bx bxs-quote-alt-left quote-icon-left"></i>
-                                    Fugiat enim eram quae cillum dolore
-                                    dolor amet nulla culpa multos export
-                                    minim fugiat minim velit minim dolor
-                                    enim duis veniam ipsum anim magna sunt
-                                    elit fore quem dolore labore illum
-                                    veniam.
-                                    <i class="bx bxs-quote-alt-right quote-icon-right"></i>
-                                </p>
-                                <img src="{{ url_for('static', filename='img/testimonials/testimonials-4.jpg') }}"
-                                    class="testimonial-img" alt="" />
-                                <h3>Matt Brandon</h3>
-                                <h4>Freelancer</h4>
-                            </div>
-                        </div> -->
-                        <!-- End testimonial item -->
-
-                        <!-- <div class="swiper-slide">
-                            <div class="testimonial-item" data-aos="fade-up" data-aos-delay="400">
-                                <p>
-                                    <i class="bx bxs-quote-alt-left quote-icon-left"></i>
-                                    Quis quorum aliqua sint quem legam fore
-                                    sunt eram irure aliqua veniam tempor
-                                    noster veniam enim culpa labore duis
-                                    sunt culpa nulla illum cillum fugiat
-                                    legam esse veniam culpa fore nisi cillum
-                                    quid.
-                                    <i class="bx bxs-quote-alt-right quote-icon-right"></i>
-                                </p>
-                                <img src="{{ url_for('static', filename='img/testimonials/testimonials-5.jpg') }}"
-                                    class="testimonial-img" alt="" />
-                                <h3>John Larson</h3>
-                                <h4>Entrepreneur</h4>
-                            </div>
-                        </div> -->
-                        <!-- End testimonial item -->
                     </div>
                     <div class="swiper-pagination"></div>
                 </div>
@@ -789,41 +542,43 @@
                             <div class="row">
                                 <div class="form-group col-md-6">
                                     <label for="name">Your Name</label>
-                                    <input type="text" name="name" class="form-control" id="name" placeholder="Full Name..." required />
+                                    <input type="text" name="name" class="form-control" id="name"
+                                        placeholder="Full Name..." required />
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label for="name">Your Email</label>
-                                    <input type="email" class="form-control" name="email" id="email" placeholder="Your Email..." required />
+                                    <label for="email">Your Email</label>
+                                    <input type="email" class="form-control" name="email" id="email"
+                                        placeholder="Your Email..." required />
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="name">Company</label>
-                                <input type="text" class="form-control" name="company" id="company" placeholder="Current Company..." required>
+                                <label for="company">Company</label>
+                                <input type="text" class="form-control" name="company" id="company"
+                                    placeholder="Current Company..." required>
                             </div>
                             <div class="form-group">
-                                <label for="name">Designation</label>
-                                <input type="text" class="form-control" name="designation" id="designation" placeholder="Current Designation..." required>
+                                <label for="designation">Designation</label>
+                                <input type="text" class="form-control" name="designation" id="designation"
+                                    placeholder="Current Designation..." required>
                             </div>
-                            <div class="form-group form-check">
-                                <input type="checkbox" id="testimony"
-                                    style="position: absolute;margin: -9px;margin-left:inherit;" value="contact"
-                                    checked>
-                                <label class="form-check-label" for="name" style="padding-left: inherit;">Send a
-                                    Message</label>
-                                <!-- <input type="checkbox" id="testimony"
-                                    style="position: absolute;margin: -9px;margin-left:inherit;" value="testimonial">
-                                <label class="form-check-label" for="name" style="padding-left: inherit;">Give a
-                                    Testimony</label> -->
-                            </div>
-                            <div class="form-group form-check">
-                                <input type="checkbox" id="testimony"
-                                    style="position: absolute;margin: -9px;margin-left:inherit;" value="testimonial">
-                                <label class="form-check-label" for="name" style="padding-left: inherit;">Give a
-                                    Testimony</label>
+                            <div class="form-group mb-3">
+                                <label class="d-block mb-2 font-weight-bold">Select Action</label>
+                                <div class="action-segment-control">
+                                    <button type="button" class="segment-btn active" data-value="contact">
+                                        <i class="bi bi-chat-dots"></i> Send a Message
+                                    </button>
+                                    <button type="button" class="segment-btn" data-value="testimonial">
+                                        <i class="bi bi-star"></i> Give a Testimony
+                                    </button>
+                                    <input type="hidden" name="message_type" id="message-type-input" value="contact" />
+                                </div>
+                                <p id="action-hint" class="action-hint text-muted mt-2 mb-0 small">Your message will be
+                                    sent directly to my email.</p>
                             </div>
                             <div class="form-group">
-                                <label for="name">Message</label>
-                                <textarea class="form-control" name="message" rows="10" maxlength="500" placeholder="Write within 500 characters..." required></textarea>
+                                <label for="message" id="message-label">Message</label>
+                                <textarea class="form-control" name="message" id="message" rows="10" maxlength="500"
+                                    placeholder="Write within 500 characters..." required></textarea>
                             </div>
                             <div class="my-3">
                                 <div class="loading">Loading</div>
@@ -848,19 +603,11 @@
     <footer id="footer">
         <div class="container">
             <div class="copyright">
-                &copy; Copyright <strong><span>iPortfolio</span></strong>
-            </div>
-            <div class="credits">
-                <!-- All the links in the footer should remain intact. -->
-                <!-- You can delete the links only if you purchased the pro version. -->
-                <!-- Licensing information: https://bootstrapmade.com/license/ -->
-                <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/iportfolio-bootstrap-portfolio-websites-template/ -->
-                Designed by
-                <a href="https://bootstrapmade.com/">BootstrapMade</a>
+                &copy; 2026 <strong><span>Sarfaraz Nawaz</span></strong>. All Rights Reserved
             </div>
         </div>
     </footer>
-    <!-- End  Footer -->
+    <!-- End Footer -->
 
     <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i
             class="bi bi-arrow-up-short"></i></a>
@@ -880,7 +627,6 @@
     <script type="text/javascript" src="{{ url_for('static', filename='vendor/typed.js/typed.umd.js') }}"></script>
     <script type="text/javascript"
         src="{{ url_for('static', filename='vendor/waypoints/noframework.waypoints.js') }}"></script>
-    <script type="text/javascript" src="{{ url_for('static', filename='vendor/php-email-form/validate.js') }}"></script>
 
     <!-- Template Main JS File -->
     <script type="text/javascript" src="{{ url_for('static', filename='js/main.js') }}"></script>

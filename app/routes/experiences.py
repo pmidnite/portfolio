@@ -1,65 +1,101 @@
-from flask import Blueprint, request, jsonify
+# routes/experiences.py
+from flask import request, jsonify
 from flask_jwt_extended import jwt_required
+from flask_smorest import Blueprint
 from datetime import datetime
-from app.utilities.utils import *
+
+from app.utilities.response import APIResponse
+from app.utilities.logger import get_logger
 from app.models.experiences import Experiences
 from app.models.about import About
 
-bp = Blueprint('experience', __name__, url_prefix='/api/experience')
+logger = get_logger(__name__)
+
+bp = Blueprint('experience', __name__, description='Experience Implementation Logic', url_prefix='/api/experience')
+
 
 @bp.route('', methods=['GET'])
 def fetch_experiences():
     try:
-        payload = request.json
-        experiences = Experiences.query.filter_by(email=payload.get("Email"), start_year=payload.get("Start Year")).all()
-    except:
-        experiences = Experiences.query.order_by(Experiences.start_year.desc()).all()
+        payload = request.get_json(silent=True)
+        if payload and (payload.get("Email") or payload.get("Start Year")):
+            experiences = Experiences.query.filter_by(
+                email=payload.get("Email"),
+                start_year=payload.get("Start Year")
+            ).all()
+        else:
+            experiences = Experiences.query.order_by(Experiences.start_year.desc()).all()
+    except Exception as e:
+        logger.error(f"Error fetching experiences: {str(e)}")
+        return APIResponse.server_error("An error occurred while fetching experiences.")
+
     if experiences:
-        return jsonify(map_class_to_dict(experience) for experience in experiences)
-    return jsonify({"Message": "No experience exist currently."})
+        return APIResponse.success(data=[exp.to_dict() for exp in experiences])
+    return APIResponse.not_found("No experience records exist.")
 
 
 @bp.route('', methods=["POST", "PATCH"])
 @jwt_required()
 def insert_or_update_experience():
-    experience_payload = request.json
-    unavailable_column = []
-    for payload in experience_payload:
-        is_email_exists = About.query.filter_by(email=payload.get('Email')).first()
-        if is_email_exists:
-            is_exists = Experiences.query.filter_by(email=payload.get('Email'),
-                                                    start_year=payload.get("Start Year")).first()
-            final_obj = is_exists or Experiences()
+    try:
+        experience_payload = request.get_json(silent=True)
+        if not experience_payload:
+            return APIResponse.error("Request body is required.", status_code=400)
+
+        unavailable_column = []
+        for payload in experience_payload:
+            is_email_exists = About.query.filter_by(email=payload.get('Email')).first()
+            if not is_email_exists:
+                return APIResponse.not_found(
+                    f"Cannot add experience — email '{payload.get('Email')}' does not exist."
+                )
+
+            is_exists = Experiences.query.filter_by(
+                email=payload.get('Email'),
+                start_year=payload.get("Start Year")
+            ).first()
+            final_obj = is_exists if is_exists else Experiences()
+
             for key, value in payload.items():
-                if hasattr(final_obj, key.lower().replace(' ', '_')):
-                    setattr(final_obj, key.lower().replace(' ', '_'), value)
+                attr = key.lower().replace(' ', '_')
+                if hasattr(final_obj, attr):
+                    setattr(final_obj, attr, value)
                 else:
                     unavailable_column.append(key)
-            db.session.add(final_obj)
-            db.session.commit()
-            continue
-        else:
-            return jsonify({"message": "Can't add experience since, Email: {0} doesn't exists.".
-                            format(payload.get("Email"))})
-    if unavailable_column:
-        message = " except these values {0} as these column doesn't exists".format(unavailable_column)
-        return jsonify({"Message": "Experience inserted/updated Successfully." + message})
-    return jsonify({"Message": "Experience inserted/updated Successfully."})
 
-@bp.route('', methods=["Delete"])
+            final_obj.save()
+
+        logger.info("Experience records inserted/updated successfully.")
+        message = "Experience inserted/updated successfully."
+        if unavailable_column:
+            message += f" Unknown fields ignored: {unavailable_column}"
+        return APIResponse.success(message=message)
+    except Exception as e:
+        logger.error(f"Error inserting/updating experience: {str(e)}")
+        return APIResponse.server_error("An error occurred while processing experience data.")
+
+
+@bp.route('', methods=["DELETE"])
 @jwt_required()
 def delete_experience():
     try:
-        del_payload = request.json
-        is_exp_exists = Experiences.query.filter_by(email=del_payload.get('Email'),
-                                                    start_year=del_payload.get("Start Year")).first()
+        del_payload = request.get_json(silent=True)
+        if not del_payload:
+            return APIResponse.error("Request body is required.", status_code=400)
+
+        is_exp_exists = Experiences.query.filter_by(
+            email=del_payload.get('Email'),
+            start_year=del_payload.get("Start Year")
+        ).first()
+
         if is_exp_exists:
-            db.session.delete(is_exp_exists)
-            db.session.commit()
-            return jsonify({"Message": "Deleted experience: {0} for Email: {1}".format(is_exp_exists,
-                                                                                    del_payload["Email"])})
-        return jsonify({"Message": "No experience exists for Email: {0} with Start Year: {1}.".\
-                        format(del_payload.get("Email"),
-                               del_payload.get("Start Year"))})
-    except Exception:
-        return jsonify({"Message": "Some exception occured."})
+            is_exp_exists.delete()
+            logger.info(f"Experience deleted for email: {del_payload.get('Email')}")
+            return APIResponse.deleted("Experience deleted successfully.")
+        return APIResponse.not_found(
+            f"No experience exists for email '{del_payload.get('Email')}' "
+            f"with start year '{del_payload.get('Start Year')}'."
+        )
+    except Exception as e:
+        logger.error(f"Error deleting experience: {str(e)}")
+        return APIResponse.server_error("An error occurred while deleting the experience.")

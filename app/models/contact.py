@@ -1,8 +1,9 @@
-from app.utilities.database import db
 from sqlalchemy.sql import func
+from app.models.base import BaseModel
+from app.utilities.database import db
 
 
-class Contact(db.Model):
+class Contact(BaseModel):
     '''
     Contact DB Structure Model
     '''
@@ -20,17 +21,20 @@ class Contact(db.Model):
         return f"<Contact {self.name}>"
 
     @classmethod
-    def filter_by_email(cls, email, all=False, desc=False, asc=False):
+    def filter_by_email(cls, email, fetch_all=False, desc=False, asc=False):
         """
         Filter records by email.
         :param email: Email to filter by
-        :return: The Contact instance if found, else None.
+        :param fetch_all: Return all matching records if True, otherwise return first
+        :param desc: Sort in descending order by contact_date
+        :param asc: Sort in ascending order by contact_date
+        :return: Contact instance(s) if found, else None.
         """
         if desc:
             return cls.query.filter_by(email=email).order_by(cls.contact_date.desc()).all()
         if asc:
             return cls.query.filter_by(email=email).order_by(cls.contact_date.asc()).all()
-        if all:
+        if fetch_all:
             return cls.query.filter_by(email=email).all()
         return cls.query.filter_by(email=email).first()
 
@@ -43,8 +47,7 @@ class Contact(db.Model):
         """
         if email:
             return cls.filter_by_email(email)
-        else:
-            return cls.query.first()
+        return cls.query.first()
 
     @classmethod
     def fetch_first_record_dict(cls, email=None):
@@ -59,52 +62,33 @@ class Contact(db.Model):
         return first_record.to_dict() if first_record else None
 
     @classmethod
-    def fetch_all_records(cls, email=None, all=True ,desc=False, asc=False):
+    def fetch_all_records(cls, email=None, fetch_all=True, desc=False, asc=False):
         """
         Get all records from the Contact table.
         :param email: Optional email to filter records by
+        :param fetch_all: Return all records
         :param desc: Sort in descending order
         :param asc: Sort in ascending order
         :return: List of Contact instances.
         """
         if email:
-            records = cls.filter_by_email(email, all=all, desc=desc, asc=asc)
+            records = cls.filter_by_email(email, fetch_all=fetch_all, desc=desc, asc=asc)
         else:
             records = cls.query.all()
         return records if records else []
 
     @classmethod
-    def fetch_all_records_dict(cls, email=None, all=True, desc=False, asc=False):
+    def fetch_all_records_dict(cls, email=None, fetch_all=True, desc=False, asc=False):
         """
         Get all records from the Contact table as a list of dictionaries.
         :param email: Optional email to filter records by
         :return: List of dictionaries representing Contact instances.
         """
         if email:
-            records = cls.filter_by_email(email, all=all, desc=desc, asc=asc)
+            records = cls.filter_by_email(email, fetch_all=fetch_all, desc=desc, asc=asc)
         else:
             records = cls.query.all()
         return [record.to_dict() for record in records] if records else []
-
-    def save(self):
-        """
-        Save the contact instance to the database.
-        """
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-
-    def delete(self):
-        """
-        Delete the contact instance from the database.
-        """
-        try:
-            db.session.delete(self)
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
 
     def to_dict(self):
         return {
@@ -113,5 +97,5 @@ class Contact(db.Model):
             "Company": self.company,
             "Designation": self.designation,
             "Message": self.message,
-            "Contact Date": self.contact_date.isoformat()  # Convert to ISO format for JSON serialization
+            "Contact Date": self.contact_date.isoformat() if self.contact_date else None
         }

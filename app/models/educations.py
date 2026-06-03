@@ -1,9 +1,10 @@
-from app.utilities.database import db
 from sqlalchemy.sql import func
+from app.models.base import BaseModel
+from app.utilities.database import db
 from app.models.about import About
 
 
-class Education(db.Model):
+class Education(BaseModel):
     '''
     Education DB Structure Model
     '''

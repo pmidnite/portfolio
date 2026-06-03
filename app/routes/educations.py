@@ -1,12 +1,16 @@
-# Routes for educations.py
-from flask import Blueprint, request, jsonify
+# routes/educations.py
+from flask import request, jsonify
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
 from flask_smorest import Blueprint
 from datetime import datetime
-from app.utilities.utils import *
+
+from app.utilities.response import APIResponse
+from app.utilities.logger import get_logger
 from app.models.educations import Education
 from app.models.about import About
+
+logger = get_logger(__name__)
 
 bp = Blueprint("education", __name__, description='Education Implementation Logic', url_prefix="/api")
 
@@ -16,72 +20,72 @@ class EducationView(MethodView):
     def get(self):
         educations = Education.query.order_by(Education.start_year.desc()).all()
         if educations:
-            return jsonify(map_class_to_dict(education) for education in educations)
-        return jsonify({"Message": "No data exists."})
+            return APIResponse.success(data=[edu.to_dict() for edu in educations])
+        return APIResponse.not_found("No education data exists.")
 
     @jwt_required()
     def post(self):
-        return insert_or_update_education()
+        try:
+            education_payload = request.get_json(silent=True)
+            if not education_payload:
+                return APIResponse.error("Request body is required.", status_code=400)
 
-    @jwt_required()
-    def delete(self):
-        return delete_education()
+            is_email_exists = About.query.filter_by(email=education_payload.get('Email')).first()
+            if not is_email_exists:
+                return APIResponse.not_found(
+                    f"Cannot add education — email '{education_payload.get('Email')}' does not exist."
+                )
 
-@bp.route("", methods=["GET"])
-def fetch_education():
-    educations = Education.query.order_by(Education.start_year.desc()).all()
-    if educations:
-        return jsonify(map_class_to_dict(education) for education in educations)
-    else:
-        return jsonify({"Message": "No data exists."})
+            current_datetime = datetime.now()
+            unavailable_column = []
 
-@bp.route("", methods=["POST", "PATCH"])
-@jwt_required()
-def insert_or_update_education():
-    try:
-        education_payload = request.json
-        is_email_exists = About.query.filter_by(email=education_payload.get('Email')).first()
-        current_datetime = datetime.now()
-        unavailable_column = []
-        if is_email_exists:
-            is_exists = Education.query.filter_by(email=education_payload.get('Email'),
-                                                  start_year=education_payload.get("Start Year")).first()
+            is_exists = Education.query.filter_by(
+                email=education_payload.get('Email'),
+                start_year=education_payload.get("Start Year")
+            ).first()
+
             if is_exists:
                 education_payload.update({'Updated Date': current_datetime})
             else:
                 education_payload.update({'Created Date': current_datetime, 'Updated Date': current_datetime})
-                new_education_obj = Education()
 
-            final_obj = is_exists or new_education_obj
+            # Fix: always determine final_obj correctly — no UnboundLocalError
+            final_obj = is_exists if is_exists else Education()
+
             for key, value in education_payload.items():
-                if hasattr(final_obj, key.lower().replace(' ', '_')):
-                    setattr(final_obj, key.lower().replace(' ', '_'), value)
+                attr = key.lower().replace(' ', '_')
+                if hasattr(final_obj, attr):
+                    setattr(final_obj, attr, value)
                 else:
                     unavailable_column.append(key)
-            db.session.add(final_obj)
-            db.session.commit()
-            if unavailable_column:
-                message = " except these values {0} as these column doesn't exists".format(unavailable_column)
-                return jsonify({"Message": "Education inserted/updated successfully" + message})
-            return jsonify({"Message": "Education inserted/updated successfully"})
-        else:
-            msg = "Can't add education since, Email: {0} doesn't exists."
-            return jsonify({"message": msg.format(education_payload.get("Email"))})
-    except Exception as er:
-        return jsonify({"Message": "Missing some data while filling education form: {0}.".format(er)})
 
-@bp.route("", methods=["DELETE"])
-@jwt_required()
-def delete_education():
-    try:
-        del_payload = request.json
-        is_exists = Education.query.filter_by(email=del_payload.get('Email')).\
-            order_by(Education.start_year.asc()).first()
-        if is_exists:
-            db.session.delete(is_exists)
-            db.session.commit()
-            return jsonify({"message": "Education: {0} deleted successfully".format(is_exists)})
-        else:
-            return jsonify({"message": "No education exists for Email: {0}.".format(del_payload.get("Email"))})
-    except Exception:
-        return jsonify({"Message": "Missing/Wrong data while delete education."})
+            final_obj.save()
+            logger.info(f"Education record saved for email: {education_payload.get('Email')}")
+
+            message = "Education inserted/updated successfully."
+            if unavailable_column:
+                message += f" Unknown fields ignored: {unavailable_column}"
+            return APIResponse.success(message=message)
+        except Exception as e:
+            logger.error(f"Error inserting/updating education: {str(e)}")
+            return APIResponse.server_error("An error occurred while processing education data.")
+
+    @jwt_required()
+    def delete(self):
+        try:
+            del_payload = request.get_json(silent=True)
+            if not del_payload:
+                return APIResponse.error("Request body is required.", status_code=400)
+
+            is_exists = Education.query.filter_by(email=del_payload.get('Email'))\
+                .order_by(Education.start_year.asc()).first()
+            if is_exists:
+                is_exists.delete()
+                logger.info(f"Education record deleted for email: {del_payload.get('Email')}")
+                return APIResponse.deleted(f"Education record deleted successfully.")
+            return APIResponse.not_found(
+                f"No education exists for email: '{del_payload.get('Email')}'."
+            )
+        except Exception as e:
+            logger.error(f"Error deleting education record: {str(e)}")
+            return APIResponse.server_error("An error occurred while deleting the education record.")

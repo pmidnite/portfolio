@@ -1,12 +1,19 @@
 // static/script.js
+// All API responses follow the APIResponse format:
+//   { "success": true/false, "data": <payload>, "message": "..." }
+// GET endpoints: access payload via response.data
+// POST endpoints: access message via response.message
+
 document.addEventListener('DOMContentLoaded', loadAndRenderData);
 function loadAndRenderData() {
+  initThemeToggle();
   fetchAndRenderAbout();
   fetchAndRenderSkill();
   fetchAndRenderEducation();
   fetchAndRenderExperience();
   fetchAndRenderTestimony();
-  handleCheckboxSelection();
+  handleSegmentControl();
+  updateFormMode('contact');
   fetchAndRenderCerts();
 };
 
@@ -14,8 +21,9 @@ function loadAndRenderData() {
 function fetchAndRenderAbout() {
   fetch('/api/about')
     .then(response => response.json())
-    .then(data => {
-      cls_data_mapper = {
+    .then(res => {
+      const data = res.data || {};
+      const cls_data_mapper = {
         "short-desc": "Short Description", "long-desc": "Description",
         "current-desig": "Current Designation", "current-company": "Current Company",
         "current-birthday": "Birthday", "current-website": "Website",
@@ -23,45 +31,100 @@ function fetchAndRenderAbout() {
         "current-phone": "Phone", "current-email": "Email",
         "current-fact": "Self Facts", "education-summary": "Summary"
       };
-      for (i in cls_data_mapper) {
-        const elements = document.querySelectorAll('.' + i);
+      for (const cls in cls_data_mapper) {
+        const elements = document.querySelectorAll('.' + cls);
         elements.forEach(el => {
-          el.innerHTML = data[cls_data_mapper[i]];
+          el.innerHTML = data[cls_data_mapper[cls]];
         });
       }
-      // document.getElementsByClassName(i).innerHTML = data[0][id_data_mapper[i]];
     })
     .catch(error => {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching about data:', error);
     });
 }
 
 function fetchAndRenderSkill() {
   fetch('/api/skill/mapping/exact')
     .then(response => response.json())
-    .then(skill => {
+    .then(res => {
+      const skills = res.data || [];
       const dataContainer = document.getElementById('skills-content-id');
-      const div = document.createElement('div');
-      skill.forEach(item => {
-        const img = document.createElement('img');
-        img.setAttribute('src', "/static/" + `${item['Skill Logo']}`);
-        img.setAttribute('title', `${item['Skill Name']}`);
-        div.setAttribute('class', 'skill-name-logo');
-        div.appendChild(img);
-        dataContainer.appendChild(div);
-      })
+      dataContainer.innerHTML = '';
+
+      // Define classification array for core skills (lowercase for robust mapping)
+      const coreSkills = [
+        'python', 'flask', 'django', 'fastapi', 'sqlalchemy', 'javascript', 'angularjs', 'html5'
+      ];
+
+      const languagesList = [];
+      const toolsList = [];
+
+      skills.forEach(item => {
+        const nameLower = (item['Skill Name'] || '').toLowerCase();
+        if (coreSkills.includes(nameLower)) {
+          languagesList.push(item);
+        } else {
+          toolsList.push(item);
+        }
+      });
+
+      // Helper function to render a list of cards under a container
+      const createSkillsGroup = (title, items) => {
+        if (items.length === 0) return;
+
+        // Create Title Row
+        const titleCol = document.createElement('div');
+        titleCol.setAttribute('class', 'col-12');
+        const h3 = document.createElement('h3');
+        h3.setAttribute('class', 'skills-category-title');
+        h3.textContent = title;
+        titleCol.appendChild(h3);
+        dataContainer.appendChild(titleCol);
+
+        // Create Card Grid Container Row
+        const gridRow = document.createElement('div');
+        gridRow.setAttribute('class', 'row justify-content-start g-3');
+
+        items.forEach(item => {
+          const col = document.createElement('div');
+          col.setAttribute('class', 'col-lg-2 col-md-3 col-sm-4 col-6');
+
+          const card = document.createElement('div');
+          card.setAttribute('class', 'skill-card');
+
+          const img = document.createElement('img');
+          img.setAttribute('src', '/static/' + item['Skill Logo']);
+          img.setAttribute('alt', item['Skill Name']);
+          img.setAttribute('class', 'img-fluid');
+
+          const span = document.createElement('span');
+          span.textContent = item['Skill Name'];
+
+          card.appendChild(img);
+          card.appendChild(span);
+          col.appendChild(card);
+          gridRow.appendChild(col);
+        });
+
+        dataContainer.appendChild(gridRow);
+      };
+
+      // Render the categorized sections
+      createSkillsGroup('Languages & Frameworks', languagesList);
+      createSkillsGroup('Tools, DevOps & Platforms', toolsList);
     })
     .catch(error => {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching skills data:', error);
     });
 }
 
 function fetchAndRenderEducation() {
   fetch('/api/education')
     .then(response => response.json())
-    .then(education => {
+    .then(res => {
+      const educations = res.data || [];
       const educationContainer = document.getElementById('education');
-      education.forEach(item => {
+      educations.forEach(item => {
         const h4 = document.createElement('h4');
         const h5 = document.createElement('h5');
         const p = document.createElement('p');
@@ -72,24 +135,25 @@ function fetchAndRenderEducation() {
         p.innerHTML = `<em>${item['University'] + ', ' + item['Address']}</em>`;
         div.append(h4, h5, p);
         educationContainer.appendChild(div);
-      })
+      });
     })
     .catch(error => {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching education data:', error);
     });
 }
 
 function fetchAndRenderExperience() {
   fetch('/api/experience')
     .then(response => response.json())
-    .then(experience => {
+    .then(res => {
+      const experiences = res.data || [];
       const experienceContainer = document.getElementById('experience');
-      experience.forEach((item, index) => {
+      experiences.forEach((item, index) => {
         const div = document.createElement('div');
-        div.setAttribute('class', "col-lg-6");
+        div.setAttribute('class', "col-lg-6 pb-4");
         div.setAttribute('data-aos', "fade-up");
         const innerDiv = document.createElement('div');
-        innerDiv.setAttribute('class', "resume-item")
+        innerDiv.setAttribute('class', "resume-item h-100");
         const h3 = document.createElement('h3');
         h3.setAttribute('class', "resume-title");
         const h4 = document.createElement('h4');
@@ -99,31 +163,43 @@ function fetchAndRenderExperience() {
         h4.innerHTML = item['Designation'];
         h5.innerHTML = item['Start Year'] + ' - ' + item['End Year'];
         p.innerHTML = `<em>${item['Company Name'] + ', ' + item['Address']}</em>`;
-        ul.innerHTML = item["Description"];
+        
+        // Split text description into bullet points for a clean recruiter-friendly layout
+        const descText = item["Description"] || "";
+        const sentences = descText.split('.').map(s => s.trim()).filter(s => s.length > 0);
+        sentences.forEach(sentence => {
+          const li = document.createElement('li');
+          li.innerHTML = sentence + '.';
+          ul.appendChild(li);
+        });
+
         if (index == 0) {
-          h3.innerHTML = "Professional Experience";
+          h3.innerHTML = "Product Contributions &amp; Experience";
         }
-        else if (index + 1 == Math.ceil(experience.length / 2)) {
+        else if (index + 1 == Math.ceil(experiences.length / 2)) {
+          h3.innerHTML = "&nbsp;";
           h3.setAttribute('style', "height: 30px");
         }
         innerDiv.append(h4, h5, p, ul);
         div.append(h3, innerDiv);
         experienceContainer.appendChild(div);
-      })
+      });
     })
     .catch(error => {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching experience data:', error);
     });
 }
 
 function fetchAndRenderTestimony() {
   fetch('/api/testimonial')
     .then(response => response.json())
-    .then(testimony => {
-      renderSwiperTestimony(testimony);
+    .then(res => {
+      // data is null/undefined when no reviewed testimonials exist (success=false)
+      const testimonials = res.data || [];
+      renderSwiperTestimony(testimonials);
     })
     .catch(error => {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching testimonials:', error);
     });
 
   function renderSwiperTestimony(data) {
@@ -137,19 +213,36 @@ function fetchAndRenderTestimony() {
       const h3 = document.createElement('h3');
       const h4 = document.createElement('h4');
       const p = document.createElement('p');
-      p.innerHTML = `<i class="bx bxs-quote-alt-left quote-icon-left"></i>
-        ${item['Message']}
-        <i class="bx bxs-quote-alt-right quote-icon-right"></i>`;
+      
+      const message = item['Message'] || '';
+      const maxChar = 280;
+      const isLong = message.length > maxChar;
+      const displayText = isLong ? message.substring(0, maxChar) + '...' : message;
+
       h3.innerHTML = item['Name'];
       if (item['Company']) {
         h4.innerHTML = item['Designation'] + ' , ' + item['Company'];
-      }
-      else {
+      } else {
         h4.innerHTML = item['Designation'];
       }
+
       innerDiv.setAttribute('class', 'testimonial-item');
       innerDiv.setAttribute('data-aos', 'fade-up');
-      innerDiv.append(p, h3, h4);
+
+      p.innerHTML = `<i class="bx bxs-quote-alt-left quote-icon-left"></i>
+        <span class="testimonial-text">${displayText}</span>
+        <i class="bx bxs-quote-alt-right quote-icon-right"></i>`;
+      
+      const readMoreBtn = document.createElement('button');
+      readMoreBtn.className = 'testimonial-read-more';
+      readMoreBtn.textContent = 'Read More';
+      readMoreBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        showTestimonialModal(item);
+      });
+
+      innerDiv.append(p, readMoreBtn, h3, h4);
+
       div.setAttribute('class', 'swiper-slide');
       div.appendChild(innerDiv);
       swiperWrapper.appendChild(div);
@@ -175,7 +268,6 @@ function fetchAndRenderTestimony() {
             slidesPerView: 1,
             spaceBetween: 20
           },
-
           1200: {
             slidesPerView: 3,
             spaceBetween: 20
@@ -190,14 +282,36 @@ function fetchAndRenderTestimony() {
 }
 
 function sendMessageOrContact(msgType) {
+  const nameInput = document.getElementById('name');
+  const emailInput = document.getElementById('email');
+  const companyInput = document.getElementById('company');
+  const designationInput = document.getElementById('designation');
+  const messageTextarea = document.getElementsByName('message')[0];
+  const submitButton = document.querySelector('.contact-form button[type="submit"]');
+  const inputs = [nameInput, emailInput, companyInput, designationInput, messageTextarea];
+
   const formData = {
-    Name: document.getElementById('name').value,
-    Email: document.getElementById('email').value,
-    Company: document.getElementById('company').value,
-    Designation: document.getElementById('designation').value,
-    Message: document.getElementsByName('message')[0].value
+    Name: nameInput ? nameInput.value : '',
+    Email: emailInput ? emailInput.value : '',
+    Company: companyInput ? companyInput.value : '',
+    Designation: designationInput ? designationInput.value : '',
+    Message: messageTextarea ? messageTextarea.value : ''
   };
-  apiUrl = '/api/' + msgType;
+
+  const originalButtonText = submitButton ? submitButton.textContent : 'Submit';
+
+  // Disable inputs and button immediately to prevent double submissions
+  inputs.forEach(input => { if (input) input.disabled = true; });
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = 'Submitting...';
+  }
+
+  // Immediately clear the form fields in the UI as requested
+  const form = document.getElementsByClassName('contact-form')[0];
+  if (form) form.reset();
+
+  const apiUrl = '/api/' + msgType;
   fetch(apiUrl, {
     method: 'POST',
     headers: {
@@ -207,32 +321,94 @@ function sendMessageOrContact(msgType) {
   })
     .then(response => {
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        return response.json().then(err => { throw new Error(err.message || 'Request failed'); });
       }
       return response.json();
     })
-    .then(data => {
-      console.log('Message sent:', data);
-      alert(data.Message);
-      document.getElementsByClassName('contact-form')[0].reset();
+    .then(res => {
+      console.log('Message sent:', res);
+      showToast(res.message, 'success');
+
+      // Re-enable inputs
+      inputs.forEach(input => { if (input) input.disabled = false; });
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+      }
+      
+      // Reset segment button states back to default ('contact')
+      const hiddenInput = document.getElementById('message-type-input');
+      if (hiddenInput) {
+        hiddenInput.value = 'contact';
+        const buttons = document.querySelectorAll('.action-segment-control .segment-btn');
+        buttons.forEach(btn => {
+          if (btn.getAttribute('data-value') === 'contact') {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+        updateFormMode('contact');
+      }
     })
     .catch(error => {
       console.error('Error sending message:', error);
-      alert('Please fill the form properly and try again.');
+      
+      // Restore the input values in case of failure so data is not lost
+      inputs.forEach(input => { if (input) input.disabled = false; });
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = originalButtonText;
+      }
+
+      if (nameInput) nameInput.value = formData.Name;
+      if (emailInput) emailInput.value = formData.Email;
+      if (companyInput) companyInput.value = formData.Company;
+      if (designationInput) designationInput.value = formData.Designation;
+      if (messageTextarea) messageTextarea.value = formData.Message;
+
+      // Restore the correct mode UI state on the text elements
+      const hiddenInput = document.getElementById('message-type-input');
+      if (hiddenInput) {
+        hiddenInput.value = msgType;
+        updateFormMode(msgType);
+      }
+
+      showToast(error.message || 'Please fill the form properly and try again.', 'error');
     });
 }
 
-function handleCheckboxSelection() {
-  const form = document.getElementsByClassName('contact-form');
-  const checkboxes = form[0].querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach(checkbox => {
-    checkbox.addEventListener('change', () => {
-      // Uncheck all other checkboxes when one is checked
-      checkboxes.forEach(otherCheckbox => {
-        if (otherCheckbox !== checkbox) {
-          otherCheckbox.checked = false;
-        }
-      });
+function updateFormMode(mode) {
+  const messageLabel = document.getElementById('message-label');
+  const messageTextarea = document.getElementById('message');
+  const submitButton = document.querySelector('.contact-form button[type="submit"]');
+  const actionHint = document.getElementById('action-hint');
+
+  if (mode === 'testimonial') {
+    if (messageLabel) messageLabel.textContent = 'Testimonial';
+    if (messageTextarea) messageTextarea.setAttribute('placeholder', 'Write your testimony here...');
+    if (submitButton) submitButton.textContent = 'Submit Testimonial';
+    if (actionHint) actionHint.textContent = 'Your testimony will be published on the website after manual approval.';
+  } else {
+    if (messageLabel) messageLabel.textContent = 'Message';
+    if (messageTextarea) messageTextarea.setAttribute('placeholder', 'Write within 500 characters...');
+    if (submitButton) submitButton.textContent = 'Send Message';
+    if (actionHint) actionHint.textContent = 'Your message will be sent directly to my email.';
+  }
+}
+
+function handleSegmentControl() {
+  const buttons = document.querySelectorAll('.action-segment-control .segment-btn');
+  const hiddenInput = document.getElementById('message-type-input');
+  if (!hiddenInput) return;
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const val = btn.getAttribute('data-value');
+      hiddenInput.value = val;
+      updateFormMode(val);
     });
   });
 }
@@ -240,7 +416,8 @@ function handleCheckboxSelection() {
 function fetchAndRenderCerts() {
   fetch('/api/certification')
     .then(response => response.json())
-    .then(certs => {
+    .then(res => {
+      const certs = res.data || [];
       const dataContainer = document.getElementsByClassName('portfolio-container')[0];
       certs.forEach(item => {
         const filter_div = document.createElement('div');
@@ -258,21 +435,159 @@ function fetchAndRenderCerts() {
         filter_div.setAttribute('class', 'col-lg-4 col-md-6 portfolio-item filter-' + `${item['Cert Type']}`.toLowerCase().replace(' ', '-'));
         filter_div.appendChild(wrap_div);
         dataContainer.appendChild(filter_div);
-      })
+      });
     })
     .catch(error => {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching certifications:', error);
     });
 }
 
 document.getElementsByClassName('contact-form')[0].addEventListener('submit', function (event) {
   event.preventDefault(); // Prevent default form submission
-  var messageType;
-  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-  checkboxes.forEach(checkbox => {
-    if (checkbox.checked) {
-      messageType = checkbox.value;
-    }
-  });
+  const hiddenInput = document.getElementById('message-type-input');
+  const messageType = hiddenInput ? hiddenInput.value : 'contact';
   sendMessageOrContact(messageType);
 });
+
+// Theme Toggle Functionality
+function initThemeToggle() {
+  const toggleBtn = document.getElementById('theme-toggle');
+  if (!toggleBtn) return;
+
+  const toggleIcon = toggleBtn.querySelector('i');
+  const toggleText = toggleBtn.querySelector('.theme-toggle-text');
+
+  // Check saved preference or fallback to system preference
+  const currentTheme = localStorage.getItem('theme') || 
+    (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+
+  // Set initial theme
+  document.documentElement.setAttribute('data-theme', currentTheme);
+  updateToggleUI(currentTheme);
+
+  toggleBtn.addEventListener('click', () => {
+    const activeTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = activeTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateToggleUI(newTheme);
+  });
+
+  function updateToggleUI(theme) {
+    if (theme === 'dark') {
+      if (toggleIcon) {
+        toggleIcon.className = 'bi bi-sun';
+      }
+      if (toggleText) {
+        toggleText.textContent = 'Light Mode';
+      }
+    } else {
+      if (toggleIcon) {
+        toggleIcon.className = 'bi bi-moon-stars';
+      }
+      if (toggleText) {
+        toggleText.textContent = 'Dark Mode';
+      }
+    }
+  }
+}
+
+// Toast Notification System helper functions
+function showToast(message, type = 'success') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = `toast-notification toast-${type}`;
+  
+  let iconClass = 'bi bi-info-circle-fill';
+  if (type === 'success') {
+    iconClass = 'bi bi-check-circle-fill';
+  } else if (type === 'error') {
+    iconClass = 'bi bi-exclamation-triangle-fill';
+  } else if (type === 'warning') {
+    iconClass = 'bi bi-exclamation-circle-fill';
+  }
+
+  toast.innerHTML = `
+    <div class="toast-content">
+      <i class="${iconClass}"></i>
+      <span class="toast-message">${message}</span>
+    </div>
+    <button class="toast-close-btn">&times;</button>
+  `;
+
+  container.appendChild(toast);
+
+  // Trigger CSS entry animation
+  setTimeout(() => {
+    toast.classList.add('show');
+  }, 10);
+
+  // Auto dismiss after 4 seconds
+  const autoDismiss = setTimeout(() => {
+    dismissToast(toast);
+  }, 4000);
+
+  // Close button click handler
+  toast.querySelector('.toast-close-btn').addEventListener('click', () => {
+    clearTimeout(autoDismiss);
+    dismissToast(toast);
+  });
+}
+
+function dismissToast(toast) {
+  toast.classList.remove('show');
+  toast.classList.add('hide');
+  toast.addEventListener('transitionend', () => {
+    toast.remove();
+  });
+}
+
+function showTestimonialModal(item) {
+  let modal = document.getElementById('testimonial-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'testimonial-modal';
+    modal.className = 'testimonial-modal';
+    modal.innerHTML = `
+      <div class="testimonial-modal-content">
+        <button class="testimonial-modal-close" id="testimonial-modal-close">&times;</button>
+        <div class="testimonial-modal-quote" id="testimonial-modal-quote"></div>
+        <div class="testimonial-modal-author" id="testimonial-modal-author"></div>
+        <div class="testimonial-modal-meta" id="testimonial-modal-meta"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Setup close listeners
+    const closeBtn = modal.querySelector('#testimonial-modal-close');
+    closeBtn.addEventListener('click', hideModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) hideModal();
+    });
+  }
+
+  const quote = modal.querySelector('#testimonial-modal-quote');
+  const author = modal.querySelector('#testimonial-modal-author');
+  const meta = modal.querySelector('#testimonial-modal-meta');
+
+  quote.textContent = item['Message'];
+  author.textContent = item['Name'];
+  meta.textContent = item['Company'] ? `${item['Designation']} at ${item['Company']}` : item['Designation'];
+
+  // Show modal
+  setTimeout(() => {
+    modal.classList.add('show');
+  }, 10);
+
+  function hideModal() {
+    modal.classList.remove('show');
+  }
+}
+

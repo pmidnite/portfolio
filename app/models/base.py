@@ -107,7 +107,7 @@ class BaseModel(db.Model):
             Instance of the model or None if not found
         """
         try:
-            return cls.query.get(record_id)
+            return db.session.get(cls, record_id)
         except SQLAlchemyError as e:
             logger.error(f"Error getting {cls.__name__} by ID {record_id}: {str(e)}")
             return None

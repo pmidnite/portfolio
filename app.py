@@ -1,6 +1,3 @@
-# # run.py
-# from app import create_app
-
-# if __name__ == '__main__':
-#     app = create_app()
-#     app.run(debug=False)
+# This file is intentionally left empty.
+# The application entry point is wsgi.py
+# This file is kept for reference only and is not used.

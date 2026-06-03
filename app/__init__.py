@@ -1,13 +1,14 @@
 # __init__.py
 from flask import Flask, render_template
 from flask_jwt_extended import JWTManager
+from flask_migrate import Migrate
 from .config import Config
 from app.models import about, contact, educations,\
                        experiences, skills, testimonials, certification
 from app.routes import about, educations, skills,\
                        experiences, testimonials, contact, generate_token,\
                        certification
-from app.utilities.database import create_database
+from app.utilities.database import create_database, db
 from app.utilities.mail_config import mail_config
 from app.utilities.logger import get_logger
 
@@ -15,20 +16,26 @@ from app.utilities.logger import get_logger
 logger = get_logger(__name__)
 
 jwt = JWTManager()
+migrate = Migrate()
+
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
-    # Initialize logging first
-    logger.info("Flask application initialization started", {
-        "app_name": app.name,
-        "config": app.config.get('ENV', 'unknown')
-    })
+    # Fix: logger.info() does not accept a dict as a second positional argument
+    # Use extra= keyword or log a formatted string instead
+    logger.info(
+        "Flask application initialization started",
+        extra={"app_name": app.name, "config": app.config.get('ENV', 'unknown')}
+    )
 
     jwt.init_app(app)
     create_database(app)
     mail_config(app)
+
+    # Initialize Flask-Migrate for DB schema migrations
+    migrate.init_app(app, db)
 
     @app.route("/")
     @app.route("/index")
@@ -45,8 +52,9 @@ def create_app():
     app.register_blueprint(certification.bp)
     app.register_blueprint(generate_token.bp)
 
-    logger.info("Flask application initialization completed successfully", {
-        "registered_blueprints": [bp.name for bp in app.blueprints.values()]
-    })
+    logger.info(
+        "Flask application initialization completed successfully",
+        extra={"registered_blueprints": [bp.name for bp in app.blueprints.values()]}
+    )
 
     return app
